@@ -3,6 +3,8 @@
 // GET  /api/users/me                      — get current user
 // PATCH /api/users/me                     — update profile
 // POST /api/users/me/password             — change password (requires current)
+// GET  /api/users/me/notifications        — get email notification preferences
+// PATCH /api/users/me/notifications       — update email notification preferences
 // POST /api/users/password/request        — request a password reset email
 // POST /api/users/password/reset          — complete password reset with token
 // POST /api/users/email/verify/request    — resend email verification link
@@ -156,6 +158,16 @@ router.post('/users/email/verify', validate({ body: VerifyEmailBody }), async (r
 
     logger.info({ userId: record.user_id }, 'email verified')
     res.json({ message: 'Email verified successfully.', user: { id: user.id, email: user.email, emailVerified: true } })
+
+    // Send welcome email asynchronously — don't block the verify response
+    setImmediate(async () => {
+      try {
+        await emailService.sendWelcomeEmail({ to: user.email, name: user.name, userId: user.id })
+        logger.info({ userId: user.id }, 'welcome email sent after verification')
+      } catch (err) {
+        logger.error({ err, userId: user.id }, 'failed to send welcome email after verification')
+      }
+    })
   } catch (err) {
     next(err)
   }
@@ -187,11 +199,9 @@ router.post('/users/password/request', passwordResetLimiter, validate({ body: Pa
       [user.id, token]
     )
 
-    const resetUrl = `${process.env.APP_URL}/reset-password?token=${token}`
-    logger.info({ userId: user.id, resetUrl }, 'password reset token generated')
+    logger.info({ userId: user.id }, 'password reset token generated')
 
-    // @custom — send resetUrl via email here
-    // await emailService.send({ to: user.email, subject: 'Reset your password', text: `Reset link: ${resetUrl}` })
+    await emailService.sendPasswordResetEmail({ to: user.email, name: user.name, token, userId: user.id })
   } catch (err) {
     logger.error({ err }, 'password reset request failed silently')
   }
@@ -220,6 +230,55 @@ router.post('/users/password/reset', passwordResetLimiter, validate({ body: Pass
     ])
 
     res.json({ message: 'Password reset successfully. You can now log in.' })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// ── Email Notification Preferences ───────────────────────────────────────────
+
+const NOTIFICATION_KEYS = ['security', 'billing', 'activity', 'marketing']
+const DEFAULT_NOTIFICATIONS = { security: true, billing: true, activity: false, marketing: false }
+
+// GET /api/users/me/notifications — get current notification preferences
+router.get('/users/me/notifications', authenticate, async (req, res, next) => {
+  try {
+    const row = await db.oneOrNone(
+      'SELECT email_notifications FROM users WHERE id = $1',
+      [req.user.id]
+    )
+    const prefs = row?.email_notifications ?? DEFAULT_NOTIFICATIONS
+    res.json({ notifications: prefs })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// PATCH /api/users/me/notifications — update notification preferences
+router.patch('/users/me/notifications', authenticate, async (req, res, next) => {
+  try {
+    const incoming = req.body ?? {}
+
+    // Only allow known keys; merge with existing prefs
+    const row = await db.oneOrNone(
+      'SELECT email_notifications FROM users WHERE id = $1',
+      [req.user.id]
+    )
+    const current = row?.email_notifications ?? DEFAULT_NOTIFICATIONS
+    const updated = { ...current }
+
+    for (const key of NOTIFICATION_KEYS) {
+      if (typeof incoming[key] === 'boolean') {
+        updated[key] = incoming[key]
+      }
+    }
+
+    await db.none(
+      'UPDATE users SET email_notifications = $2, updated_at = now() WHERE id = $1',
+      [req.user.id, JSON.stringify(updated)]
+    )
+
+    res.json({ notifications: updated })
   } catch (err) {
     next(err)
   }

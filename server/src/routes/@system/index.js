@@ -10,8 +10,11 @@ router.use(require('../../api/@system/admin'))
 router.use(require('../../api/@system/stripe'))
 router.use(require('../../api/@system/polar'))
 router.use(require('../../api/@system/subscriptions'))
+router.use(require('../../api/@system/payments'))
 router.use(require('../../api/@system/api-keys'))
 router.use(require('../../api/@system/oauth'))
 router.use(require('../../api/@system/onboarding'))
+router.use(require('../../api/@system/email'))
+router.use(require('../../api/@system/ai'))
 
 module.exports = router

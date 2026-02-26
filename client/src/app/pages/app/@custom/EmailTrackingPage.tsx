@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   ChevronDown,
   Clock,
+  Eye,
   Filter,
   Mail,
   MailCheck,
@@ -13,6 +14,7 @@ import {
   Users,
   X,
 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { Header } from '../../../components/@system/Header/Header'
 import { PageLayout } from '../../../components/@system/layout/PageLayout'
 import { cn } from '../../../lib/@system/utils'
@@ -274,14 +276,23 @@ export function EmailTrackingPage() {
             </h1>
             <p className="text-sm text-muted-foreground mt-0.5">Monitor transactional email delivery</p>
           </div>
-          <button
-            onClick={fetchData}
-            disabled={loading}
-            className="flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm font-medium hover:bg-muted disabled:opacity-50"
-          >
-            <RefreshCw className={cn('h-3.5 w-3.5', loading && 'animate-spin')} />
-            Refresh
-          </button>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/app/emails/preview"
+              className="flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm font-medium hover:bg-muted"
+            >
+              <Eye className="h-3.5 w-3.5" />
+              Preview Templates
+            </Link>
+            <button
+              onClick={fetchData}
+              disabled={loading}
+              className="flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm font-medium hover:bg-muted disabled:opacity-50"
+            >
+              <RefreshCw className={cn('h-3.5 w-3.5', loading && 'animate-spin')} />
+              Refresh
+            </button>
+          </div>
         </div>
 
         {/* Stats */}

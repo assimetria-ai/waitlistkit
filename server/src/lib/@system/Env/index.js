@@ -146,6 +146,52 @@ const SCHEMA = [
     description: 'Verified SES sender address  e.g. noreply@example.com',
   },
 
+  // ── Email service ─────────────────────────────────────────────────────────
+  {
+    key: 'EMAIL_PROVIDER',
+    required: false,
+    allowed: ['ses', 'smtp', 'console'],
+    description: 'Email transport: ses | smtp | console (auto-detected when absent)',
+  },
+  {
+    key: 'EMAIL_FROM',
+    required: false,
+    description: 'Sender address used in From header  e.g. "App <noreply@example.com>"',
+  },
+  {
+    key: 'APP_NAME',
+    required: false,
+    default: 'App',
+    description: 'Product display name injected into email copy',
+  },
+  {
+    key: 'SMTP_HOST',
+    required: false,
+    description: 'SMTP hostname  e.g. smtp.resend.com | smtp.sendgrid.net',
+  },
+  {
+    key: 'SMTP_PORT',
+    required: false,
+    default: '587',
+    type: 'number',
+    description: 'SMTP port (587 = STARTTLS, 465 = SSL)',
+  },
+  {
+    key: 'SMTP_USER',
+    required: false,
+    description: 'SMTP username / login',
+  },
+  {
+    key: 'SMTP_PASS',
+    required: false,
+    description: 'SMTP password or API key',
+  },
+  {
+    key: 'EMAIL_TRACKING_SECRET',
+    required: false,
+    description: 'Shared secret for the internal /api/email-logs ingest endpoint',
+  },
+
   // ── AWS / S3 ──────────────────────────────────────────────────────────────
   {
     key: 'S3_BUCKET',
@@ -156,6 +202,18 @@ const SCHEMA = [
     key: 'S3_ENDPOINT',
     required: false,
     description: 'Custom S3 endpoint URL — for MinIO / LocalStack  e.g. http://localhost:9000',
+  },
+
+  // ── AI / LLM ──────────────────────────────────────────────────────────────
+  {
+    key: 'OPENAI_API_KEY',
+    required: false,
+    description: 'OpenAI API key (sk-...) — enables /api/ai/openai/* routes',
+  },
+  {
+    key: 'ANTHROPIC_API_KEY',
+    required: false,
+    description: 'Anthropic API key (sk-ant-...) — enables /api/ai/anthropic/* routes',
   },
 
   // ── Observability ─────────────────────────────────────────────────────────

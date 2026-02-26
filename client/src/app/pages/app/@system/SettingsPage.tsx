@@ -1,12 +1,13 @@
 // @system — user profile / settings page
 import { useState, useEffect, useCallback, type FormEvent } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Settings, Shield, CreditCard, Activity, Key, Save, Monitor, Trash2 } from 'lucide-react'
+import { Home, Settings, Shield, CreditCard, Activity, Key, Save, Monitor, Trash2, Bell } from 'lucide-react'
 import { Header } from '../../../components/@system/Header/Header'
 import { Sidebar, SidebarSection, SidebarItem } from '../../../components/@system/Sidebar/Sidebar'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../components/@system/Card/Card'
 import { FormField, Input } from '../../../components/@system/Form/Form'
 import { Button } from '../../../components/@system/ui/button'
+import { Switch } from '../../../components/@system/ui/switch'
 import { useAuthContext } from '../../../store/@system/auth'
 import { SettingsPageSkeleton } from '../../../components/@system/Skeleton/Skeleton'
 import { TwoFactorSetup } from '../../../components/@system/TwoFactor/TwoFactorSetup'
@@ -59,6 +60,15 @@ export function SettingsPage() {
   const [error, setError] = useState('')
   const [totpEnabled, setTotpEnabled] = useState(false)
 
+  // Email notification preferences
+  type NotifPrefs = { security: boolean; billing: boolean; activity: boolean; marketing: boolean }
+  const [notifPrefs, setNotifPrefs] = useState<NotifPrefs>({
+    security: true, billing: true, activity: false, marketing: false,
+  })
+  const [notifSaving, setNotifSaving] = useState(false)
+  const [notifSuccess, setNotifSuccess] = useState(false)
+  const [notifError, setNotifError] = useState('')
+
   // Active sessions state
   const [sessions, setSessions] = useState<Session[]>([])
   const [sessionsLoading, setSessionsLoading] = useState(true)
@@ -68,6 +78,12 @@ export function SettingsPage() {
   useEffect(() => {
     api.get<{ enabled: boolean }>('/users/me/2fa/status')
       .then((r) => setTotpEnabled(r.enabled))
+      .catch(() => {/* non-critical */})
+  }, [])
+
+  useEffect(() => {
+    api.get<{ notifications: NotifPrefs }>('/users/me/notifications')
+      .then((r) => setNotifPrefs(r.notifications))
       .catch(() => {/* non-critical */})
   }, [])
 
@@ -105,6 +121,21 @@ export function SettingsPage() {
       setSessionsError('Failed to revoke session')
     } finally {
       setRevokingId(null)
+    }
+  }
+
+  async function handleNotifSave() {
+    setNotifSaving(true)
+    setNotifSuccess(false)
+    setNotifError('')
+    try {
+      const res = await api.patch<{ notifications: NotifPrefs }>('/users/me/notifications', notifPrefs)
+      setNotifPrefs(res.notifications)
+      setNotifSuccess(true)
+    } catch (err) {
+      setNotifError(err instanceof Error ? err.message : 'Failed to save')
+    } finally {
+      setNotifSaving(false)
     }
   }
 
@@ -271,6 +302,67 @@ export function SettingsPage() {
                   ))}
                 </ul>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Email Notifications */}
+          <Card className="mb-6">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Bell className="h-4 w-4 text-muted-foreground" />
+                <CardTitle>Email Notifications</CardTitle>
+              </div>
+              <CardDescription>Choose which emails you want to receive.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {([
+                {
+                  key: 'security' as const,
+                  label: 'Security alerts',
+                  description: 'Sign-in from new device, password changes, suspicious activity.',
+                },
+                {
+                  key: 'billing' as const,
+                  label: 'Billing & subscription',
+                  description: 'Receipts, renewal reminders, and plan changes.',
+                },
+                {
+                  key: 'activity' as const,
+                  label: 'Activity digest',
+                  description: 'Weekly summary of your account activity.',
+                },
+                {
+                  key: 'marketing' as const,
+                  label: 'Product updates',
+                  description: 'New features, tips, and announcements.',
+                },
+              ] as const).map(({ key, label, description }) => (
+                <div key={key} className="flex items-start justify-between gap-4">
+                  <div className="space-y-0.5 min-w-0">
+                    <p className="text-sm font-medium leading-none">{label}</p>
+                    <p className="text-xs text-muted-foreground">{description}</p>
+                  </div>
+                  <Switch
+                    checked={notifPrefs[key]}
+                    onCheckedChange={(val) =>
+                      setNotifPrefs((prev) => ({ ...prev, [key]: val }))
+                    }
+                  />
+                </div>
+              ))}
+              {notifError && <p className="text-sm text-destructive">{notifError}</p>}
+              {notifSuccess && (
+                <p className="text-sm text-green-600">Notification preferences saved!</p>
+              )}
+              <Button
+                type="button"
+                onClick={handleNotifSave}
+                disabled={notifSaving}
+                className="gap-2"
+              >
+                <Save className="h-4 w-4" />
+                {notifSaving ? 'Saving…' : 'Save Preferences'}
+              </Button>
             </CardContent>
           </Card>
 

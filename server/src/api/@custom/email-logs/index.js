@@ -6,6 +6,60 @@ const express = require('express')
 const router = express.Router()
 const { authenticate, requireAdmin } = require('../../../lib/@system/Helpers/auth')
 const EmailLogRepo = require('../../../db/repos/@custom/EmailLogRepo')
+const emailTemplates = require('../../../lib/@system/Email/templates')
+
+// ── Template preview (admin-only) ──────────────────────────────────────────
+
+const PREVIEW_FIXTURES = {
+  verification: () => emailTemplates.verification({
+    name: 'Alex',
+    verifyUrl: `${process.env.APP_URL ?? 'http://localhost:5173'}/verify-email?token=PREVIEW_TOKEN_abc123`,
+  }),
+  welcome: () => emailTemplates.welcome({
+    name: 'Alex',
+    appUrl: process.env.APP_URL ?? 'http://localhost:5173',
+    appName: process.env.APP_NAME ?? 'App',
+  }),
+  password_reset: () => emailTemplates.passwordReset({
+    name: 'Alex',
+    resetUrl: `${process.env.APP_URL ?? 'http://localhost:5173'}/reset-password?token=PREVIEW_TOKEN_xyz789`,
+  }),
+  invitation: () => emailTemplates.invitation({
+    inviterName: 'Jordan Smith',
+    orgName: 'Acme Corp',
+    inviteUrl: `${process.env.APP_URL ?? 'http://localhost:5173'}/accept-invite?token=PREVIEW_TOKEN_inv456`,
+  }),
+  magic_link: () => emailTemplates.magicLink({
+    name: 'Alex',
+    magicUrl: `${process.env.APP_URL ?? 'http://localhost:5173'}/magic-link?token=PREVIEW_TOKEN_ml789`,
+  }),
+  notification: () => emailTemplates.notification({
+    title: 'Your report is ready',
+    body: '<p>Your weekly usage report has been generated and is ready to view.</p><p>Here\'s a quick summary: 42 active users, 1,234 events tracked, and 3 new integrations connected this week.</p>',
+    ctaLabel: 'View Report',
+    ctaUrl: `${process.env.APP_URL ?? 'http://localhost:5173'}/app`,
+  }),
+}
+
+// GET /api/email-logs/preview — list available template names
+router.get('/email-logs/preview', authenticate, requireAdmin, (req, res) => {
+  res.json({ templates: Object.keys(PREVIEW_FIXTURES) })
+})
+
+// GET /api/email-logs/preview/:template — render a template as HTML (for iframe preview)
+router.get('/email-logs/preview/:template', authenticate, requireAdmin, (req, res) => {
+  const { template } = req.params
+  const builder = PREVIEW_FIXTURES[template]
+  if (!builder) {
+    return res.status(404).json({
+      message: `Unknown template "${template}". Available: ${Object.keys(PREVIEW_FIXTURES).join(', ')}`,
+    })
+  }
+  const html = builder()
+  res.setHeader('Content-Type', 'text/html; charset=utf-8')
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN')
+  res.send(html)
+})
 
 // GET /api/email-logs/stats
 router.get('/email-logs/stats', authenticate, requireAdmin, async (req, res, next) => {

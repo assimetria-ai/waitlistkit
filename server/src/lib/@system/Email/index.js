@@ -1,140 +1,358 @@
 // @system — Email service
-// Sends transactional emails via SMTP (nodemailer) when SMTP_HOST is configured,
-// or falls back to console logging for local development.
+// Sends transactional emails via three possible transports (in priority order):
+//   1. Resend  — when EMAIL_PROVIDER=resend or RESEND_API_KEY is set (and SMTP_HOST is absent)
+//   2. SMTP    — when SMTP_HOST is configured (also covers Resend SMTP relay)
+//   3. SES     — when EMAIL_PROVIDER=ses or AWS creds are set
+//   4. Console — dev fallback when nothing is configured
 //
 // Environment variables:
-//   SMTP_HOST          — SMTP hostname (e.g. smtp.resend.com, smtp.sendgrid.net)
-//   SMTP_PORT          — SMTP port (default: 587)
-//   SMTP_USER          — SMTP username
-//   SMTP_PASS          — SMTP password / API key
-//   EMAIL_FROM         — Sender address (e.g. "App <noreply@example.com>")
-//   APP_URL            — Used to build links in emails
+//   EMAIL_PROVIDER         — 'resend' | 'smtp' | 'ses' | 'console' (optional; auto-detected)
+//   EMAIL_FROM             — Sender e.g. "App <noreply@example.com>"
+//   APP_URL                — Used to build action links in templates
+//   APP_NAME               — Product display name used in email copy (default: 'App')
+//   EMAIL_TRACKING_SECRET  — Shared secret for /api/email-logs ingestion
 //
-// To use with Resend:  SMTP_HOST=smtp.resend.com  SMTP_PORT=587  SMTP_USER=resend  SMTP_PASS=<api-key>
-// To use with SES:     configure AWS SDK separately in the AWS lib and call SES.sendEmail
-// To use with SendGrid: SMTP_HOST=smtp.sendgrid.net  SMTP_PORT=587  SMTP_USER=apikey  SMTP_PASS=<api-key>
+//   Resend (native API):
+//     RESEND_API_KEY       — Resend API key (re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
+//     RESEND_REPLY_TO      — Optional reply-to address
+//
+//   SMTP (any provider including Resend SMTP relay):
+//     SMTP_HOST            — SMTP hostname e.g. smtp.resend.com, smtp.sendgrid.net
+//     SMTP_PORT            — Port (default: 587)
+//     SMTP_USER            — Username
+//     SMTP_PASS            — Password / API key
+//     SMTP_SECURE          — 'true' to force TLS (auto: true if port 465)
+//     SMTP_POOL            — 'true' to use connection pooling
+//
+//   SES:
+//     AWS_REGION           — e.g. eu-west-1
+//     AWS_ACCESS_KEY_ID    — IAM access key
+//     AWS_SECRET_ACCESS_KEY— IAM secret key
+//     SES_FROM_EMAIL       — Fallback sender when EMAIL_FROM is absent
+//
+// Usage:
+//   const Email = require('./lib/@system/Email')
+//   await Email.sendVerificationEmail({ to, name, token })
+//   await Email.sendPasswordResetEmail({ to, name, token })
+//   await Email.sendWelcomeEmail({ to, name })
+//   await Email.sendInvitationEmail({ to, inviterName, orgName, token })
+//   await Email.sendMagicLinkEmail({ to, name, token })
+//   await Email.sendNotificationEmail({ to, subject, title, body, ctaLabel, ctaUrl })
+//   await Email.send({ to, subject, html, text, template })  // raw send
 
 'use strict'
 
 const logger = require('../Logger')
+const templates = require('./templates')
 
-// ── Transport factory ────────────────────────────────────────────────────────
+// ── Transport / adapter state ─────────────────────────────────────────────────
 
-let _transporter = null
+let _state = null  // { provider, smtpTransporter? }
 
-function getTransporter() {
-  if (_transporter) return _transporter
+/**
+ * Detect the active provider and initialise adapters once.
+ * Returns { provider } where provider is 'resend' | 'smtp' | 'ses' | 'console'.
+ */
+function getTransport() {
+  if (_state !== null) return _state
 
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env
+  const explicit = (process.env.EMAIL_PROVIDER ?? '').toLowerCase()
 
-  if (!SMTP_HOST) {
-    // No SMTP configured — use console logger as transport
-    return null
+  // ── Resend (native API) ───────────────────────────────────────────────────
+  const hasResendKey = !!process.env.RESEND_API_KEY
+  const preferResend =
+    explicit === 'resend' ||
+    (!explicit && !process.env.SMTP_HOST && !process.env.AWS_ACCESS_KEY_ID && hasResendKey)
+
+  if (preferResend) {
+    if (!hasResendKey) {
+      logger.warn('[Email] EMAIL_PROVIDER=resend but RESEND_API_KEY is not set — falling back')
+    } else {
+      _state = { provider: 'resend' }
+      logger.info('[Email] Resend adapter initialised (native API)')
+      return _state
+    }
   }
 
-  try {
-    const nodemailer = require('nodemailer')
-    _transporter = nodemailer.createTransport({
-      host: SMTP_HOST,
-      port: Number(SMTP_PORT ?? 587),
-      secure: Number(SMTP_PORT ?? 587) === 465,
-      auth: SMTP_USER && SMTP_PASS ? { user: SMTP_USER, pass: SMTP_PASS } : undefined,
-    })
-    logger.info({ host: SMTP_HOST }, '[Email] SMTP transport initialized')
-    return _transporter
-  } catch (err) {
-    logger.warn({ err }, '[Email] nodemailer not available — falling back to console logger')
-    return null
+  // ── SES ───────────────────────────────────────────────────────────────────
+  const hasSesCredentials =
+    process.env.AWS_ACCESS_KEY_ID &&
+    process.env.AWS_SECRET_ACCESS_KEY &&
+    (process.env.SES_FROM_EMAIL || process.env.EMAIL_FROM)
+
+  if (explicit === 'ses' || (!explicit && !process.env.SMTP_HOST && hasSesCredentials)) {
+    try {
+      const nodemailer = require('nodemailer')
+      const { SESClient, SendRawEmailCommand } = require('@aws-sdk/client-ses')
+
+      const ses = new SESClient({
+        region: process.env.AWS_REGION ?? 'eu-west-1',
+        credentials: {
+          accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        },
+      })
+
+      const transporter = nodemailer.createTransport({
+        SES: { ses, aws: { SendRawEmailCommand } },
+        sendingRate: 14,
+      })
+
+      _state = { provider: 'ses', smtpTransporter: transporter }
+      logger.info({ region: process.env.AWS_REGION }, '[Email] SES transport initialised')
+      return _state
+    } catch (err) {
+      logger.warn({ err }, '[Email] SES init failed — falling back to SMTP')
+    }
   }
+
+  // ── SMTP (covers Resend SMTP relay, SendGrid, Mailgun, etc.) ─────────────
+  if (explicit === 'smtp' || process.env.SMTP_HOST) {
+    try {
+      const smtpAdapter = require('./adapters/smtp')
+      const transporter = smtpAdapter.createTransport()
+      _state = { provider: 'smtp', smtpTransporter: transporter }
+      return _state
+    } catch (err) {
+      logger.warn({ err }, '[Email] SMTP init failed — falling back to console')
+    }
+  }
+
+  // ── Console (dev fallback) ────────────────────────────────────────────────
+  _state = { provider: 'console' }
+  logger.warn(
+    '[Email] No transport configured — emails logged to console only. ' +
+      'Set RESEND_API_KEY, SMTP_HOST, or EMAIL_PROVIDER=ses to enable real sending.',
+  )
+  return _state
 }
 
-// ── Core send ────────────────────────────────────────────────────────────────
+// ── Core send ─────────────────────────────────────────────────────────────────
 
 /**
  * Send an email.
- * @param {object} opts
- * @param {string}   opts.to      Recipient address
- * @param {string}   opts.subject Subject line
- * @param {string}   opts.html    HTML body
- * @param {string}  [opts.text]   Plain-text fallback (auto-stripped from html if omitted)
+ *
+ * @param {object}  opts
+ * @param {string}  opts.to        Recipient address
+ * @param {string}  opts.subject   Subject line
+ * @param {string}  opts.html      HTML body
+ * @param {string} [opts.text]     Plain-text fallback (auto-stripped from html if omitted)
+ * @param {string} [opts.template] Template identifier for logging (e.g. 'verification')
+ * @param {number} [opts.userId]   Associated user ID for log record
+ * @param {string} [opts.replyTo]  Reply-to address
+ * @param {string[]} [opts.cc]     CC recipients
+ * @param {string[]} [opts.bcc]    BCC recipients
+ * @param {object[]} [opts.attachments] Attachments
+ * @returns {Promise<{ messageId: string, provider: string, devMode?: boolean }>}
  */
-async function send({ to, subject, html, text }) {
-  const from = process.env.EMAIL_FROM ?? process.env.SES_FROM_EMAIL ?? 'noreply@example.com'
-  const transporter = getTransporter()
+async function send({ to, subject, html, text, template, userId, replyTo, cc, bcc, attachments }) {
+  const from =
+    process.env.EMAIL_FROM ??
+    process.env.SES_FROM_EMAIL ??
+    'noreply@example.com'
 
-  if (!transporter) {
-    // Dev fallback — log the email to console so devs can act on it
+  const plainText = text ?? _htmlToText(html)
+  const { provider, smtpTransporter } = getTransport()
+
+  // ── Console ──────────────────────────────────────────────────────────────
+  if (provider === 'console') {
     logger.info(
       { to, subject, html },
-      '[Email] No SMTP configured — email not sent (dev mode). Set SMTP_HOST to enable sending.'
+      '[Email] Console mode — email NOT sent. Set RESEND_API_KEY, SMTP_HOST, or EMAIL_PROVIDER=ses.',
     )
-    // Also print the plain URL so it's easy to copy from terminal logs
     const urlMatch = html.match(/href="([^"]+)"/)
     if (urlMatch) logger.info({ url: urlMatch[1] }, '[Email] Action URL')
-    return { messageId: 'dev-console', devMode: true }
+
+    await _trackEmail({ to, subject, template, messageId: 'console', provider: 'console', userId })
+    return { messageId: 'console', provider: 'console', devMode: true }
   }
 
-  const info = await transporter.sendMail({ from, to, subject, html, text })
-  logger.info({ to, subject, messageId: info.messageId }, '[Email] sent')
-  return info
+  let messageId
+  let sendError = null
+
+  try {
+    let result
+
+    if (provider === 'resend') {
+      const resendAdapter = require('./adapters/resend')
+      result = await resendAdapter.send({ from, to, subject, html, text: plainText, replyTo, cc, bcc, attachments })
+    } else if (provider === 'smtp' || provider === 'ses') {
+      // Both ses and smtp use the nodemailer transporter stored in state
+      const info = await smtpTransporter.sendMail({
+        from,
+        to,
+        subject,
+        html,
+        text: plainText,
+        ...(replyTo && { replyTo }),
+        ...(cc?.length && { cc }),
+        ...(bcc?.length && { bcc }),
+        ...(attachments?.length && { attachments }),
+      })
+      result = { messageId: info.messageId, provider }
+    }
+
+    messageId = result.messageId
+    logger.info({ to, subject, messageId, provider }, '[Email] sent')
+  } catch (err) {
+    sendError = err
+    logger.error({ err, to, subject }, '[Email] send failed')
+  }
+
+  await _trackEmail({
+    to,
+    subject,
+    template,
+    messageId: messageId ?? null,
+    provider,
+    status: sendError ? 'failed' : 'sent',
+    error: sendError ? String(sendError.message) : null,
+    userId,
+  })
+
+  if (sendError) throw sendError
+
+  return { messageId, provider }
 }
 
-// ── Template helpers ─────────────────────────────────────────────────────────
+// ── Internal helpers ──────────────────────────────────────────────────────────
 
 /**
- * Send an email verification link to the given address.
- * @param {object} opts
- * @param {string} opts.to    Recipient email
- * @param {string} opts.name  Recipient name (optional)
- * @param {string} opts.token Raw verification token
+ * Fire-and-forget: persist an email log record via direct DB write.
+ * Fails silently so email delivery is never blocked by a logging error.
  */
-async function sendVerificationEmail({ to, name, token }) {
+async function _trackEmail({ to, subject, template, messageId, provider, status = 'sent', error = null, userId }) {
+  try {
+    const EmailLogRepo = require('../../../db/repos/@custom/EmailLogRepo')
+    await EmailLogRepo.create({
+      to_address: to,
+      subject,
+      template: template ?? null,
+      status,
+      message_id: messageId ?? null,
+      provider: provider ?? null,
+      error: error ?? null,
+      user_id: userId ?? null,
+    })
+  } catch (_dbErr) {
+    // Silently ignore — logging must never break email delivery
+  }
+}
+
+/**
+ * Very lightweight HTML → plain-text fallback.
+ */
+function _htmlToText(html) {
+  return html
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+}
+
+// ── Template senders ──────────────────────────────────────────────────────────
+
+/** Send an email-verification link. */
+async function sendVerificationEmail({ to, name, token, userId }) {
   const appUrl = process.env.APP_URL ?? 'http://localhost:5173'
   const verifyUrl = `${appUrl}/verify-email?token=${token}`
-  const displayName = name ?? 'there'
-
-  const html = `
-<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f9fafb">
-  <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 16px">
-    <tr>
-      <td align="center">
-        <table width="100%" style="max-width:520px;background:#ffffff;border-radius:8px;padding:40px;border:1px solid #e5e7eb">
-          <tr>
-            <td>
-              <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#111827">
-                Verify your email address
-              </h1>
-              <p style="margin:0 0 24px;font-size:15px;color:#6b7280">
-                Hi ${displayName}, thanks for signing up. Please confirm your email address by clicking the button below.
-              </p>
-              <a href="${verifyUrl}"
-                 style="display:inline-block;padding:12px 24px;background:#111827;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;border-radius:6px">
-                Verify Email
-              </a>
-              <p style="margin:24px 0 0;font-size:13px;color:#9ca3af">
-                This link expires in 24 hours. If you didn't create an account, you can safely ignore this email.
-              </p>
-              <p style="margin:16px 0 0;font-size:13px;color:#9ca3af">
-                Or copy this link: <a href="${verifyUrl}" style="color:#6b7280">${verifyUrl}</a>
-              </p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`
-
   return send({
     to,
     subject: 'Verify your email address',
-    html,
+    html: templates.verification({ name, verifyUrl }),
     text: `Verify your email: ${verifyUrl}`,
+    template: 'verification',
+    userId,
   })
 }
 
-module.exports = { send, sendVerificationEmail }
+/** Send a password-reset link. */
+async function sendPasswordResetEmail({ to, name, token, userId }) {
+  const appUrl = process.env.APP_URL ?? 'http://localhost:5173'
+  const resetUrl = `${appUrl}/reset-password?token=${token}`
+  return send({
+    to,
+    subject: 'Reset your password',
+    html: templates.passwordReset({ name, resetUrl }),
+    text: `Reset your password: ${resetUrl}`,
+    template: 'password_reset',
+    userId,
+  })
+}
+
+/** Send a welcome email after successful registration. */
+async function sendWelcomeEmail({ to, name, userId }) {
+  const appUrl = process.env.APP_URL ?? 'http://localhost:5173'
+  const appName = process.env.APP_NAME ?? 'App'
+  return send({
+    to,
+    subject: `Welcome to ${appName}`,
+    html: templates.welcome({ name, appUrl, appName }),
+    text: `Welcome to ${appName}! Visit ${appUrl} to get started.`,
+    template: 'welcome',
+    userId,
+  })
+}
+
+/** Send a team / workspace invitation. */
+async function sendInvitationEmail({ to, inviterName, orgName, token, userId }) {
+  const appUrl = process.env.APP_URL ?? 'http://localhost:5173'
+  const inviteUrl = `${appUrl}/accept-invite?token=${token}`
+  return send({
+    to,
+    subject: `${inviterName} invited you to ${orgName}`,
+    html: templates.invitation({ inviterName, orgName, inviteUrl }),
+    text: `${inviterName} invited you to join ${orgName}. Accept here: ${inviteUrl}`,
+    template: 'invitation',
+    userId,
+  })
+}
+
+/** Send a magic-link (passwordless) login email. */
+async function sendMagicLinkEmail({ to, name, token, userId }) {
+  const appUrl = process.env.APP_URL ?? 'http://localhost:5173'
+  const magicUrl = `${appUrl}/magic-link?token=${token}`
+  return send({
+    to,
+    subject: 'Your sign-in link',
+    html: templates.magicLink({ name, magicUrl }),
+    text: `Sign in here (link expires in 15 minutes): ${magicUrl}`,
+    template: 'magic_link',
+    userId,
+  })
+}
+
+/** Send a generic notification email with an optional CTA button. */
+async function sendNotificationEmail({ to, subject, title, body, ctaLabel, ctaUrl, userId }) {
+  return send({
+    to,
+    subject,
+    html: templates.notification({ title, body, ctaLabel, ctaUrl }),
+    text: ctaUrl ? `${title}\n\n${body}\n\n${ctaLabel ?? 'View'}: ${ctaUrl}` : `${title}\n\n${body}`,
+    template: 'notification',
+    userId,
+  })
+}
+
+/** Reset the cached transport (useful in tests or after config changes). */
+function resetTransport() {
+  _state = null
+}
+
+module.exports = {
+  send,
+  sendVerificationEmail,
+  sendPasswordResetEmail,
+  sendWelcomeEmail,
+  sendInvitationEmail,
+  sendMagicLinkEmail,
+  sendNotificationEmail,
+  resetTransport,
+  getTransport,
+}

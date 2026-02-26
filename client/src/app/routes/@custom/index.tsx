@@ -4,6 +4,7 @@ import { CollaboratorsPage } from '../../pages/app/@custom/CollaboratorsPage'
 import { BrandSettingsPage } from '../../pages/app/@custom/BrandSettingsPage'
 import { ChatbasePage } from '../../pages/app/@custom/ChatbasePage'
 import { EmailTrackingPage } from '../../pages/app/@custom/EmailTrackingPage'
+import { EmailPreviewPage } from '../../pages/app/@custom/EmailPreviewPage'
 import { PrivateRoute } from '@/app/components/@system/PrivateRoute/PrivateRoute'
 
 // @custom — add your product-specific routes here.
@@ -51,6 +52,15 @@ export const customRoutes: React.ReactElement[] = [
     element={
       <PrivateRoute role="admin">
         <EmailTrackingPage />
+      </PrivateRoute>
+    }
+  />,
+  <Route
+    key="email-preview"
+    path="/app/emails/preview"
+    element={
+      <PrivateRoute role="admin">
+        <EmailPreviewPage />
       </PrivateRoute>
     }
   />,

@@ -1,13 +1,29 @@
 // @system — Onboarding page
 // Shown to first-time users immediately after registration.
 // Renders the OnboardingWizard in a full-page centered layout.
-// Route: /onboarding (public after auth — redirect handled by ProtectedRoute)
+// Route: /onboarding (public after auth — redirect handled internally)
 
+import { lazy, Suspense } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuthContext } from '@/app/store/@system/auth'
-import { OnboardingWizard } from '../../../components/@system/OnboardingWizard/OnboardingWizard'
 import { Spinner } from '../../../components/@system/Loading/Spinner'
 import { info } from '@/config/@system/info'
+
+// Lazy-load the OnboardingWizard so framer-motion is NOT bundled into this chunk
+// for unauthenticated users who will just be redirected to /auth.
+const OnboardingWizard = lazy(() =>
+  import('../../../components/@system/OnboardingWizard/OnboardingWizard').then((m) => ({
+    default: m.OnboardingWizard,
+  }))
+)
+
+function WizardFallback() {
+  return (
+    <div className="flex h-64 items-center justify-center">
+      <Spinner />
+    </div>
+  )
+}
 
 export function OnboardingPage() {
   const { user, loading, isAuthenticated } = useAuthContext()
@@ -41,7 +57,9 @@ export function OnboardingPage() {
       {/* Centered wizard */}
       <main className="flex flex-1 items-center justify-center px-4 py-12">
         <div className="w-full max-w-lg rounded-2xl border border-border/60 bg-card p-8 shadow-sm">
-          <OnboardingWizard />
+          <Suspense fallback={<WizardFallback />}>
+            <OnboardingWizard />
+          </Suspense>
         </div>
       </main>
 
