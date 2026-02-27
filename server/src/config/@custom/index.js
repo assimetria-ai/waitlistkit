@@ -1,13 +1,9 @@
-// @custom — product-specific server config override
-// Merge/override values from @system/info.js here.
-// This file is NEVER overwritten during template sync.
-
 const systemInfo = require('../@system/info')
 
 const customInfo = {
-  // Override @system values here, e.g.:
-  // name: 'MyProduct',
-  // url: 'https://myproduct.com',
+  name: 'WaitlistKit',
+  url: process.env.APP_URL ?? 'https://waitlistkit.com',
+  description: 'Waitlist management. Your runway starts here.',
 }
 
 module.exports = { ...systemInfo, ...customInfo }
