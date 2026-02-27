@@ -11,7 +11,7 @@ import { Header } from '../../../components/@system/Header/Header'
 import { Sidebar, SidebarSection, SidebarItem } from '../../../components/@system/Sidebar/Sidebar'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../components/@system/Card/Card'
 import { Button } from '../../../components/@system/ui/button'
-import { Badge } from '../../../components/@system/ui/badge'
+import { Badge } from '../../../components/@system/Badge/Badge'
 import { useAuthContext } from '../../../store/@system/auth'
 import { api } from '../../../lib/@system/api'
 
