@@ -22,7 +22,7 @@ const NAV_ITEMS = [
   { icon: Activity, label: 'Activity',  to: '/app/activity' },
   { icon: CreditCard, label: 'Billing', to: '/app/billing' },
   { icon: Key,      label: 'API Keys',  to: '/app/api-keys' },
-  { icon, label: 'Settings',  to: '/app/settings' },
+  { icon: Settings, label: 'Settings',  to: '/app/settings' },
 ]
 
 const CATEGORY_ICONS = {
