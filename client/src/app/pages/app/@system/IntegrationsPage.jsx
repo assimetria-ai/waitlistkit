@@ -180,7 +180,7 @@ export function IntegrationsPage() {
             </p>
           </div>
           <SidebarSection>
-            {NAV_ITEMS.map(({ icon, label, to }) => (
+            {NAV_ITEMS.map(({ icon: Icon, label, to }) => (
               <Link to={to} key={to}>
                 <SidebarItem
                   icon={<Icon className="h-4 w-4" />}
