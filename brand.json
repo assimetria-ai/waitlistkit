@@ -1,0 +1,16 @@
+{
+  "name": "WaitlistKit",
+  "tagline": "Launch with momentum.",
+  "brand_color": "#10B981",
+  "accent_color": "#3B82F6",
+  "font_primary": "Inter",
+  "font_secondary": "JetBrains Mono",
+  "icon_library": "lucide-react",
+  "ui_library": "shadcn/ui",
+  "tone_of_voice": "technical, developer-friendly, pragmatic",
+  "brand_voice": "efficient, opinionated, production-ready",
+  "target_audience": "developers and founders building SaaS products",
+  "differentiator": "production-ready full-stack SaaS starter with auth, billing, and dashboard wired up",
+  "default_theme": "light",
+  "competitor_source": ""
+}

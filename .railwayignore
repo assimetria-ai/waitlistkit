@@ -1,0 +1,10 @@
+# Ignore local dev artefacts
+docker-compose.yml
+docker-compose.local.yml
+client/node_modules
+server/node_modules
+client/dist
+*.local
+.env
+.env.*
+!.env.example

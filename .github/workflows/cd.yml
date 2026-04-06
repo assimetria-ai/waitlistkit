@@ -1,0 +1,62 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  CD — Assimetria Product Template
+#
+#  Deploys to Railway on every push to main (after CI passes).
+#
+#  Required GitHub secrets:
+#    RAILWAY_TOKEN       — Railway API token (Settings → Tokens)
+#    RAILWAY_SERVICE_ID  — Railway service ID (from railway.json or dashboard)
+#    RAILWAY_PROJECT_ID  — Railway project ID (from dashboard URL)
+#
+#  Optional secrets (set per-environment in Railway, not here):
+#    DATABASE_URL, REDIS_URL, JWT_SECRET, STRIPE_SECRET_KEY, etc.
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: CD
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: cd-production
+  cancel-in-progress: false   # never cancel an in-flight deploy
+
+jobs:
+  deploy:
+    name: Deploy to Railway (production)
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli@latest
+
+      - name: Deploy to Railway
+        run: railway up --service "$RAILWAY_SERVICE_ID" --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID }}
+
+      - name: Wait for deployment health
+        run: |
+          echo "Waiting for Railway deployment to become healthy..."
+          sleep 30
+          STATUS=$(railway status --service "$RAILWAY_SERVICE_ID" --json 2>/dev/null | jq -r '.status' 2>/dev/null || echo "unknown")
+          echo "Deployment status: $STATUS"
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID }}
+
+      - name: Notify success
+        if: success()
+        run: |
+          echo "✅ Deployment to production succeeded — commit ${{ github.sha }}"
+
+      - name: Notify failure
+        if: failure()
+        run: |
+          echo "❌ Deployment to production FAILED — commit ${{ github.sha }}"
+          exit 1

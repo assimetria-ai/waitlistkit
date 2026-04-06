@@ -1,0 +1,139 @@
+# Cursor / Claude Code Development Guidelines
+
+## Core Architecture
+
+Backend:  Node.js + Express + PostgreSQL + pg-promise
+Frontend: React 18 + Vite + TypeScript + shadcn/ui + Tailwind CSS + lucide-react
+
+### Directory Structure
+```
+client/
+  └── src/
+      └── app/
+          ├── pages/
+          │   ├── static/         # Static pages (landing, about, terms)
+          │   │   ├── @system/    # Core static pages — do not modify
+          │   │   └── @custom/    # Product-specific static pages
+          │   └── app/            # Authenticated app pages
+          │       ├── @system/    # Core app pages — do not modify
+          │       └── @custom/    # Product-specific app pages
+          ├── components/
+          │   ├── @system/        # Core shared components — do not modify
+          │   └── @custom/        # Product-specific components
+          ├── routes/
+          │   ├── @system/        # Core routing — do not modify
+          │   └── @custom/        # Product-specific routes (add here)
+          ├── api/                # Frontend API call layer
+          │   ├── @system/        # Core API calls — do not modify
+          │   └── @custom/        # Product-specific API calls
+          ├── hooks/
+          │   ├── @system/        # Core hooks — do not modify
+          │   └── @custom/        # Product-specific hooks
+          ├── store/
+          │   ├── @system/        # Core state — do not modify
+          │   └── @custom/        # Product-specific state slices
+          └── assets/
+              ├── @generated/     # Auto-generated assets (fonts, logos)
+              └── images/
+                  ├── @system/    # Core images
+                  └── @custom/    # Product-specific images
+
+client/
+  └── src/
+      └── config/
+          ├── @system/            # Core config — do not modify
+          └── @custom/            # Product-specific config overrides
+
+server/
+  └── src/
+      ├── api/
+      │   ├── @system/            # Core API handlers — do not modify
+      │   └── @custom/            # Product-specific API handlers
+      ├── routes/
+      │   ├── @system/            # Core routes — do not modify
+      │   └── @custom/            # Product-specific routes (register here)
+      ├── config/
+      │   ├── @system/            # Core server config — do not modify
+      │   └── @custom/            # Product-specific config overrides
+      ├── db/
+      │   ├── repos/
+      │   │   ├── @system/        # Core repositories — do not modify
+      │   │   └── @custom/        # Product-specific repositories
+      │   ├── schemas/
+      │   │   ├── @system/        # Core SQL schemas — do not modify
+      │   │   └── @custom/        # Product-specific schemas
+      │   └── migrations/
+      │       ├── @system/        # Core migrations — do not modify
+      │       └── @custom/        # Product-specific migrations
+      ├── lib/
+      │   ├── @system/            # Core utilities — do not modify
+      │   └── @custom/            # Product-specific utilities
+      ├── scheduler/
+      │   └── tasks/
+      │       ├── @system/        # Core scheduled tasks — do not modify
+      │       └── @custom/        # Product-specific tasks
+      └── workers/
+          ├── @system/            # Core workers — do not modify
+          └── @custom/            # Product-specific workers
+```
+
+## Critical Rules
+
+### DO NOT:
+1. Modify any files in `@system` folders — they are managed by the template
+2. Create files directly in non-@custom folders (put them in @custom)
+3. Use hard-coded colors, spacing, or font sizes
+4. Import from a file without verifying it exists
+
+### ALWAYS:
+1. Create new files in `@custom` folders
+2. Register new server routes in `server/src/routes/@custom/index.js`
+3. Register new client routes in `client/src/app/routes/@custom/index.tsx`
+4. Use TypeScript for all client-side files
+5. Use CommonJS (require/module.exports) for server-side files
+6. Use shadcn/ui components and lucide-react icons
+7. Use Tailwind CSS for styling (no inline styles, no separate CSS unless necessary)
+
+## Create Rules
+
+1. Tasks   → `server/src/scheduler/tasks/@custom/`
+2. Schemas → `server/src/db/schemas/@custom/`
+3. Repos   → `server/src/db/repos/@custom/`
+4. Lib     → `server/src/lib/@custom/`
+5. Workers → `server/src/workers/@custom/`
+6. Components → `client/src/app/components/@custom/`
+7. Pages   → `client/src/app/pages/app/@custom/` or `client/src/app/pages/static/@custom/`
+8. Routes  → `client/src/app/routes/@custom/`
+9. Configs → `client/src/config/@custom/`
+10. API calls → `client/src/app/api/@custom/`
+
+## Creating an API Endpoint
+
+**Server:**
+1. Create handler at `server/src/api/@custom/<feature>/index.js`
+2. Register router in `server/src/routes/@custom/index.js`
+
+**Client:**
+1. Add API call function to `client/src/app/api/@custom/index.ts`
+2. Use the `api` helper from `@/app/lib/@system/api`
+
+## Creating a DB Repository
+
+1. Add schema at `server/src/db/schemas/@custom/<table>.sql`
+2. Add migration at `server/src/db/migrations/@custom/`
+3. Create repo at `server/src/db/repos/@custom/<Model>.js`
+4. Export from `server/src/db/repos/@custom/index.js`
+
+## Style Guidelines (Tailwind/shadcn)
+
+1. Use shadcn/ui primitives: Button, Card, Input, Dialog, etc.
+2. Use Tailwind utility classes for spacing and layout
+3. Use lucide-react for all icons
+4. Keep components responsive by default
+5. Support both light and dark themes via Tailwind dark: modifier
+
+## Central Config
+
+- Root config:   `.config/info.js`
+- Server config: `server/src/config/@system/info.js` + `@custom/index.js` override
+- Client config: `client/src/config/@system/info.ts` + `@custom/info.ts` override

@@ -1,0 +1,43 @@
+// EmailPreviewPage styles
+
+// Page header: stack on mobile
+@media (max-width: 639px) {
+  .email-preview-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+
+    > button {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+}
+
+// Template selector: horizontal scrollable on tablet/mobile (before lg breakpoint)
+@media (max-width: 1023px) {
+  .template-nav {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.5rem;
+
+    // Hide scrollbar while keeping scroll functionality
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+}
+
+// Preview iframe: shorter on mobile to avoid excessive scroll
+@media (max-width: 767px) {
+  .email-preview-iframe {
+    height: 380px;
+  }
+}
+
+@media (max-width: 479px) {
+  .email-preview-iframe {
+    height: 280px;
+  }
+}

@@ -1,0 +1,109 @@
+version: '3.8'
+
+# ─────────────────────────────────────────────
+#  Assimetria Product Template — Dual-server architecture
+#  Services: server (Node/Express API, port 3001) · client (React/webpack, port 3000) · db (PostgreSQL) · redis (Redis)
+# ─────────────────────────────────────────────
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  pgdata:
+  redisdata:
+
+services:
+
+  # ── PostgreSQL ──────────────────────────────
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-product_template}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      # Bind to localhost only — internal Docker network is used for app access
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-product_template}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ── Redis ────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      # Bind to localhost only — internal Docker network is used for app access
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redisdata:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  # ── Server (Node/Express) ────────────────────
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: ${PORT:-3001}
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-product_template}
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-changeme-in-production}
+    ports:
+      # Bind to localhost only — accessed externally via client proxy or nginx
+      - "127.0.0.1:${PORT:-3001}:3001"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:${PORT:-3001}/api/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  # ── Client (React/Webpack) ───────────────────
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      # Bind to localhost only — use nginx or reverse proxy for external access
+      - "127.0.0.1:${CLIENT_PORT:-3000}:3000"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    environment:
+      API_URL: ${API_URL:-http://localhost:3001}
+    depends_on:
+      server:
+        condition: service_healthy
+    networks:
+      - app-network

@@ -1,0 +1,43 @@
+// ChatbasePage styles
+
+// Chatbase live preview iframe: reduce height on mobile
+@media (max-width: 767px) {
+  .chatbase-preview-iframe {
+    height: 340px;
+  }
+}
+
+@media (max-width: 479px) {
+  .chatbase-preview-iframe {
+    height: 260px;
+  }
+}
+
+// Chatbot ID input + Test button: stack on very small screens
+@media (max-width: 399px) {
+  .chatbot-id-row {
+    flex-direction: column;
+
+    > button {
+      width: 100%;
+    }
+  }
+}
+
+// Embed snippet: wrap long lines on mobile
+@media (max-width: 639px) {
+  .chatbase-embed-snippet pre {
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-size: 0.7rem;
+  }
+}
+
+// Status badge + heading: allow wrapping on small screens
+@media (max-width: 479px) {
+  .chatbase-page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}

@@ -1,0 +1,2069 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Template — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand:          #1e293b;
+      --brand-dark:     #0f172a;
+      --brand-hover:    #334155;
+      --accent:         #3b82f6;
+      --accent-hover:   #2563eb;
+      --accent-light:   #eff6ff;
+      --accent-dim:     rgba(59,130,246,0.1);
+      --bg:             #f8fafc;
+      --surface:        #ffffff;
+      --surface-2:      #f1f5f9;
+      --border:         #e2e8f0;
+      --border-light:   #f1f5f9;
+      --text:           #0f172a;
+      --text-2:         #475569;
+      --text-3:         #94a3b8;
+      --success:        #22c55e;
+      --success-light:  #f0fdf4;
+      --success-border: #bbf7d0;
+      --warning:        #f59e0b;
+      --warning-light:  #fffbeb;
+      --warning-border: #fde68a;
+      --error:          #ef4444;
+      --error-light:    #fef2f2;
+      --error-border:   #fecaca;
+      --sidebar-w:      260px;
+      --topbar-h:       0px;
+      --radius:         8px;
+      --radius-sm:      6px;
+      --radius-lg:      12px;
+      --shadow-sm:      0 1px 2px rgba(0,0,0,0.05);
+      --shadow:         0 1px 3px rgba(0,0,0,0.1),0 1px 2px rgba(0,0,0,0.06);
+      --shadow-md:      0 4px 6px -1px rgba(0,0,0,0.1),0 2px 4px -1px rgba(0,0,0,0.06);
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Layout ── */
+    .app {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--brand);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .sidebar-header {
+      padding: 20px 16px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .sidebar-logo svg {
+      width: 32px;
+      height: 32px;
+      flex-shrink: 0;
+    }
+
+    .sidebar-logo-text {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+
+    .sidebar-logo-text span {
+      color: #60a5fa;
+    }
+
+    .sidebar-workspace {
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .workspace-selector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      background: rgba(255,255,255,0.06);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .workspace-selector:hover { background: rgba(255,255,255,0.1); }
+
+    .workspace-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 5px;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .workspace-name {
+      flex: 1;
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.85);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .workspace-chevron {
+      color: rgba(255,255,255,0.4);
+      font-size: 10px;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 8px 8px;
+    }
+
+    .nav-section-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.35);
+      padding: 12px 8px 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-bottom: 1px;
+      color: rgba(255,255,255,0.65);
+      font-size: 13.5px;
+      font-weight: 450;
+      user-select: none;
+    }
+
+    .nav-item:hover {
+      background: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.9);
+    }
+
+    .nav-item.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .nav-item.active .nav-icon { opacity: 1; }
+
+    .nav-icon {
+      width: 18px;
+      height: 18px;
+      opacity: 0.7;
+      flex-shrink: 0;
+    }
+
+    .nav-badge {
+      margin-left: auto;
+      background: rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.7);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 99px;
+      line-height: 1.6;
+    }
+
+    .nav-item.active .nav-badge {
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+    }
+
+    .sidebar-footer {
+      padding: 12px 8px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .user-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .user-row:hover { background: rgba(255,255,255,0.06); }
+
+    .user-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .user-info { flex: 1; overflow: hidden; }
+
+    .user-name {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.85);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-email {
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ── Main Content ── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-3);
+    }
+
+    .breadcrumb-sep { font-size: 12px; }
+
+    .breadcrumb-current {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .topbar-spacer { flex: 1; }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-2);
+      transition: background 0.15s, border-color 0.15s;
+      position: relative;
+    }
+
+    .icon-btn:hover { background: var(--surface-2); border-color: var(--border); }
+
+    .notif-dot {
+      width: 7px;
+      height: 7px;
+      background: var(--error);
+      border-radius: 50%;
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      border: 1px solid var(--surface);
+    }
+
+    .cmd-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 10px;
+      height: 32px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: transparent;
+      cursor: pointer;
+      color: var(--text-3);
+      font-size: 12.5px;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+
+    .cmd-btn:hover { background: var(--surface-2); }
+
+    .cmd-kbd {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1px 4px;
+      color: var(--text-3);
+    }
+
+    .content-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    /* ── Sections (tabs) ── */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* ── Page Header ── */
+    .page-header {
+      margin-bottom: 24px;
+    }
+
+    .page-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+    }
+
+    .page-subtitle {
+      font-size: 13.5px;
+      color: var(--text-2);
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .card-header {
+      padding: 16px 20px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--text-3);
+      margin-top: 2px;
+    }
+
+    .card-body { padding: 16px 20px 20px; }
+
+    /* ── Stats Grid ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .stat-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .stat-change {
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .stat-change.up { color: var(--success); }
+    .stat-change.down { color: var(--error); }
+    .stat-change.neutral { color: var(--text-3); }
+
+    /* ── Table ── */
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 16px;
+      font-size: 11.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-3);
+      border-bottom: 1px solid var(--border);
+      background: var(--surface-2);
+    }
+
+    th:first-child { border-radius: var(--radius-sm) 0 0 0; }
+    th:last-child { border-radius: 0 var(--radius-sm) 0 0; }
+
+    td {
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text);
+      vertical-align: middle;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--bg); }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 11.5px;
+      font-weight: 500;
+      line-height: 1.6;
+    }
+
+    .badge-green {
+      background: var(--success-light);
+      color: #16a34a;
+      border: 1px solid var(--success-border);
+    }
+
+    .badge-blue {
+      background: var(--accent-light);
+      color: var(--accent);
+      border: 1px solid #bfdbfe;
+    }
+
+    .badge-yellow {
+      background: var(--warning-light);
+      color: #d97706;
+      border: 1px solid var(--warning-border);
+    }
+
+    .badge-red {
+      background: var(--error-light);
+      color: #dc2626;
+      border: 1px solid var(--error-border);
+    }
+
+    .badge-gray {
+      background: var(--surface-2);
+      color: var(--text-2);
+      border: 1px solid var(--border);
+    }
+
+    /* ── Avatar/User Display ── */
+    .user-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .avatar-sm {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .cell-name { font-weight: 500; color: var(--text); }
+    .cell-sub { font-size: 12px; color: var(--text-3); }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s, box-shadow 0.15s;
+      border: 1px solid transparent;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text-2);
+      border-color: var(--border);
+    }
+
+    .btn-outline:hover { background: var(--surface-2); color: var(--text); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-2);
+      border-color: transparent;
+    }
+
+    .btn-ghost:hover { background: var(--surface-2); color: var(--text); }
+
+    .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+    /* ── Grids ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+
+    /* ── Chart Placeholder ── */
+    .chart-area {
+      height: 180px;
+      background: var(--surface-2);
+      border-radius: var(--radius);
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      padding: 16px 16px 0;
+      overflow: hidden;
+    }
+
+    .chart-bar {
+      flex: 1;
+      border-radius: 4px 4px 0 0;
+      background: var(--accent);
+      opacity: 0.75;
+      transition: opacity 0.2s;
+    }
+
+    .chart-bar:hover { opacity: 1; }
+    .chart-bar.lighter { opacity: 0.35; }
+
+    /* ── Form Elements ── */
+    .form-group { margin-bottom: 16px; }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 13.5px;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--surface);
+      transition: border-color 0.15s, box-shadow 0.15s;
+      outline: none;
+    }
+
+    .form-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+
+    .form-input::placeholder { color: var(--text-3); }
+
+    .form-select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%2394a3b8' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 32px;
+    }
+
+    .form-hint {
+      font-size: 12px;
+      color: var(--text-3);
+      margin-top: 4px;
+    }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    /* ── Toggle ── */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .toggle-row:last-child { border-bottom: none; }
+
+    .toggle-info { flex: 1; }
+
+    .toggle-label {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .toggle-desc {
+      font-size: 12px;
+      color: var(--text-3);
+      margin-top: 1px;
+    }
+
+    .toggle {
+      width: 36px;
+      height: 20px;
+      background: var(--border);
+      border-radius: 99px;
+      cursor: pointer;
+      position: relative;
+      transition: background 0.2s;
+      flex-shrink: 0;
+      margin-left: 16px;
+    }
+
+    .toggle.on { background: var(--accent); }
+
+    .toggle::after {
+      content: '';
+      width: 14px;
+      height: 14px;
+      background: white;
+      border-radius: 50%;
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      transition: left 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+
+    .toggle.on::after { left: 19px; }
+
+    /* ── Progress ── */
+    .progress-bar {
+      height: 6px;
+      background: var(--surface-2);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: var(--accent);
+      transition: width 0.4s ease;
+    }
+
+    .progress-fill.green { background: var(--success); }
+    .progress-fill.yellow { background: var(--warning); }
+
+    /* ── Plan Card ── */
+    .plan-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      position: relative;
+      transition: border-color 0.2s;
+    }
+
+    .plan-card.featured {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+
+    .plan-badge {
+      position: absolute;
+      top: -11px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: white;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 10px;
+      border-radius: 99px;
+    }
+
+    .plan-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .plan-price {
+      font-size: 30px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.03em;
+      margin: 12px 0 4px;
+    }
+
+    .plan-price span {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text-3);
+    }
+
+    .plan-desc {
+      font-size: 12.5px;
+      color: var(--text-3);
+      margin-bottom: 16px;
+    }
+
+    .plan-feature {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-2);
+      margin-bottom: 8px;
+    }
+
+    .plan-feature-check {
+      width: 16px;
+      height: 16px;
+      color: var(--success);
+      flex-shrink: 0;
+    }
+
+    /* ── File items ── */
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border-light);
+      transition: background 0.15s;
+      cursor: pointer;
+    }
+
+    .file-item:last-child { border-bottom: none; }
+    .file-item:hover { background: var(--bg); }
+
+    .file-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 16px;
+    }
+
+    .file-name { font-size: 13.5px; font-weight: 500; color: var(--text); }
+    .file-meta { font-size: 12px; color: var(--text-3); }
+    .file-size { font-size: 12px; color: var(--text-3); margin-left: auto; white-space: nowrap; }
+
+    /* ── Metric row ── */
+    .metric-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .metric-row:last-child { border-bottom: none; }
+
+    .metric-label { font-size: 13px; color: var(--text-2); }
+    .metric-value { font-size: 13px; font-weight: 600; color: var(--text); font-family: 'JetBrains Mono', monospace; }
+
+    /* ── Alert / Banner ── */
+    .alert {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      margin-bottom: 16px;
+      font-size: 13px;
+    }
+
+    .alert-info { background: var(--accent-light); border: 1px solid #bfdbfe; color: #1d4ed8; }
+    .alert-success { background: var(--success-light); border: 1px solid var(--success-border); color: #15803d; }
+    .alert-warning { background: var(--warning-light); border: 1px solid var(--warning-border); color: #b45309; }
+
+    /* ── Code block ── */
+    .code-block {
+      background: var(--brand);
+      color: #e2e8f0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      padding: 16px;
+      border-radius: var(--radius);
+      overflow-x: auto;
+      line-height: 1.7;
+    }
+
+    .code-block .kw { color: #60a5fa; }
+    .code-block .str { color: #86efac; }
+    .code-block .cm { color: #64748b; }
+
+    /* ── Activity feed ── */
+    .activity-item {
+      display: flex;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .activity-item:last-child { border-bottom: none; }
+
+    .activity-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+      margin-top: 5px;
+    }
+
+    .activity-dot.green { background: var(--success); }
+    .activity-dot.yellow { background: var(--warning); }
+    .activity-dot.red { background: var(--error); }
+
+    .activity-text { font-size: 13px; color: var(--text); line-height: 1.5; }
+    .activity-time { font-size: 11.5px; color: var(--text-3); margin-top: 2px; }
+
+    /* ── Role tags ── */
+    .role-owner { color: #7c3aed; background: #f5f3ff; border: 1px solid #ddd6fe; }
+    .role-admin { color: var(--accent); background: var(--accent-light); border: 1px solid #bfdbfe; }
+    .role-member { color: var(--text-2); background: var(--surface-2); border: 1px solid var(--border); }
+    .role-viewer { color: var(--text-3); background: var(--surface-2); border: 1px solid var(--border); }
+
+    /* ── Tabs within section ── */
+    .inner-tabs {
+      display: flex;
+      gap: 4px;
+      padding: 4px;
+      background: var(--surface-2);
+      border-radius: var(--radius-sm);
+      width: fit-content;
+      margin-bottom: 20px;
+    }
+
+    .inner-tab {
+      padding: 5px 14px;
+      font-size: 12.5px;
+      font-weight: 500;
+      border-radius: 4px;
+      cursor: pointer;
+      color: var(--text-3);
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .inner-tab.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <a class="sidebar-logo" href="#">
+        <!-- logo-white.svg embedded inline -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44" fill="none" role="img" aria-label="Product Template mark" width="32" height="32">
+          <title>Product Template</title>
+          <rect width="44" height="44" rx="11" fill="white"/>
+          <path d="M10 22 L15.5 16 L15.5 18.8 L12.8 22 L15.5 25.2 L15.5 28 Z" fill="#3b82f6"/>
+          <path d="M34 22 L28.5 16 L28.5 18.8 L31.2 22 L28.5 25.2 L28.5 28 Z" fill="#3b82f6"/>
+          <line x1="26" y1="13.5" x2="20.5" y2="30.5" stroke="#3b82f6" stroke-width="2.4" stroke-linecap="round"/>
+        </svg>
+        <span class="sidebar-logo-text">Product<span> Template</span></span>
+      </a>
+    </div>
+
+    <div class="sidebar-workspace">
+      <div class="workspace-selector">
+        <div class="workspace-avatar">PT</div>
+        <span class="workspace-name">Acme Corp</span>
+        <span class="workspace-chevron">⌄</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+
+      <div class="nav-item active" onclick="switchTab('overview', this)">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+          <rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+        Dashboard
+      </div>
+
+      <div class="nav-section-label">Features</div>
+
+      <div class="nav-item" onclick="switchTab('auth', this)">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+          <polyline points="10 17 15 12 10 7"/>
+          <line x1="15" y1="12" x2="3" y2="12"/>
+        </svg>
+        Authentication
+      </div>
+
+      <div class="nav-item" onclick="switchTab('navigation', this)">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Navigation
+      </div>
+
+      <div class="nav-item" onclick="switchTab('team', this)">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        Team Management
+        <span class="nav-badge">5</span>
+      </div>
+
+      <div class="nav-item" onclick="switchTab('billing', this)">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+          <line x1="1" y1="10" x2="23" y2="10"/>
+        </svg>
+        Billing
+      </div>
+
+      <div class="nav-item" onclick="switchTab('settings', this)">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        Settings
+      </div>
+
+      <div class="nav-item" onclick="switchTab('files', this)">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+        </svg>
+        File Management
+      </div>
+
+      <div class="nav-item" onclick="switchTab('admin', this)">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        Admin Panel
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-row">
+        <div class="user-avatar">AJ</div>
+        <div class="user-info">
+          <div class="user-name">Alex Johnson</div>
+          <div class="user-email">alex@acmecorp.io</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <div class="main">
+    <div class="topbar">
+      <div class="breadcrumb">
+        <span>Workspace</span>
+        <span class="breadcrumb-sep">›</span>
+        <span class="breadcrumb-current" id="breadcrumb-current">Dashboard</span>
+      </div>
+      <div class="topbar-spacer"></div>
+      <div class="topbar-actions">
+        <button class="cmd-btn">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          Search
+          <span class="cmd-kbd">⌘K</span>
+        </button>
+        <button class="icon-btn">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          <span class="notif-dot"></span>
+        </button>
+        <button class="icon-btn">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="content-area">
+
+      <!-- ════════════════ OVERVIEW / DASHBOARD ════════════════ -->
+      <div class="section active" id="section-overview">
+        <div class="page-header">
+          <h1 class="page-title">Dashboard</h1>
+          <p class="page-subtitle">Welcome back, Alex. Here's what's happening today.</p>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total Users</div>
+            <div class="stat-value">2,847</div>
+            <div class="stat-change up">↑ 12.4% vs last month</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Active Sessions</div>
+            <div class="stat-value">142</div>
+            <div class="stat-change up">↑ 8 right now</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Monthly Revenue</div>
+            <div class="stat-value">$14,280</div>
+            <div class="stat-change up">↑ 22.1% MoM</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Churn Rate</div>
+            <div class="stat-value">2.1%</div>
+            <div class="stat-change down">↑ 0.3% vs last month</div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:24px">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">User Growth</div>
+                <div class="card-subtitle">New signups last 8 weeks</div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="chart-area">
+                <div class="chart-bar lighter" style="height:38%"></div>
+                <div class="chart-bar lighter" style="height:45%"></div>
+                <div class="chart-bar lighter" style="height:52%"></div>
+                <div class="chart-bar lighter" style="height:41%"></div>
+                <div class="chart-bar" style="height:61%"></div>
+                <div class="chart-bar" style="height:74%"></div>
+                <div class="chart-bar" style="height:69%"></div>
+                <div class="chart-bar" style="height:88%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Recent Activity</div>
+                <div class="card-subtitle">Last 24 hours</div>
+              </div>
+            </div>
+            <div class="card-body" style="padding-top:8px">
+              <div class="activity-item">
+                <div class="activity-dot green"></div>
+                <div>
+                  <div class="activity-text"><strong>Sarah Chen</strong> invited 3 team members</div>
+                  <div class="activity-time">2 minutes ago</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-dot"></div>
+                <div>
+                  <div class="activity-text"><strong>Acme Corp</strong> upgraded to Pro plan</div>
+                  <div class="activity-time">18 minutes ago</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-dot yellow"></div>
+                <div>
+                  <div class="activity-text"><strong>API rate limit</strong> hit by integration key</div>
+                  <div class="activity-time">1 hour ago</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-dot green"></div>
+                <div>
+                  <div class="activity-text"><strong>deploy/v2.4.1</strong> went live successfully</div>
+                  <div class="activity-time">3 hours ago</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-dot red"></div>
+                <div>
+                  <div class="activity-text"><strong>Payment failed</strong> for user #1042</div>
+                  <div class="activity-time">5 hours ago</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Recent Signups</div>
+            <button class="btn btn-outline btn-sm">View all</button>
+          </div>
+          <div class="card-body" style="padding:0">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>User</th>
+                    <th>Plan</th>
+                    <th>Signed Up</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><div class="user-cell"><div class="avatar-sm" style="background:#3b82f6">SC</div><div><div class="cell-name">Sarah Chen</div><div class="cell-sub">sarah@devco.io</div></div></div></td>
+                    <td><span class="badge badge-blue">Pro</span></td>
+                    <td>Mar 24, 2026</td>
+                    <td><span class="badge badge-green">Active</span></td>
+                    <td><button class="btn btn-ghost btn-sm">View</button></td>
+                  </tr>
+                  <tr>
+                    <td><div class="user-cell"><div class="avatar-sm" style="background:#8b5cf6">MR</div><div><div class="cell-name">Marco Rossi</div><div class="cell-sub">marco@startup.com</div></div></div></td>
+                    <td><span class="badge badge-gray">Free</span></td>
+                    <td>Mar 23, 2026</td>
+                    <td><span class="badge badge-green">Active</span></td>
+                    <td><button class="btn btn-ghost btn-sm">View</button></td>
+                  </tr>
+                  <tr>
+                    <td><div class="user-cell"><div class="avatar-sm" style="background:#f59e0b">LK</div><div><div class="cell-name">Lisa Kim</div><div class="cell-sub">lisa@acme.co</div></div></div></td>
+                    <td><span class="badge badge-blue">Pro</span></td>
+                    <td>Mar 22, 2026</td>
+                    <td><span class="badge badge-yellow">Pending</span></td>
+                    <td><button class="btn btn-ghost btn-sm">View</button></td>
+                  </tr>
+                  <tr>
+                    <td><div class="user-cell"><div class="avatar-sm" style="background:#ef4444">JB</div><div><div class="cell-name">James Brown</div><div class="cell-sub">james@techfirm.dev</div></div></div></td>
+                    <td><span class="badge badge-green">Enterprise</span></td>
+                    <td>Mar 21, 2026</td>
+                    <td><span class="badge badge-green">Active</span></td>
+                    <td><button class="btn btn-ghost btn-sm">View</button></td>
+                  </tr>
+                  <tr>
+                    <td><div class="user-cell"><div class="avatar-sm" style="background:#10b981">AP</div><div><div class="cell-name">Ana Pereira</div><div class="cell-sub">ana@buildit.pt</div></div></div></td>
+                    <td><span class="badge badge-gray">Free</span></td>
+                    <td>Mar 20, 2026</td>
+                    <td><span class="badge badge-red">Inactive</span></td>
+                    <td><button class="btn btn-ghost btn-sm">View</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════ AUTHENTICATION ════════════════ -->
+      <div class="section" id="section-auth">
+        <div class="page-header">
+          <h1 class="page-title">Authentication & Onboarding</h1>
+          <p class="page-subtitle">User accounts, OAuth providers, and onboarding flow management.</p>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total Users</div>
+            <div class="stat-value">2,847</div>
+            <div class="stat-change up">↑ 12.4% this month</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Email Verified</div>
+            <div class="stat-value">91.2%</div>
+            <div class="stat-change neutral">2,596 of 2,847</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">OAuth Users</div>
+            <div class="stat-value">1,134</div>
+            <div class="stat-change neutral">39.8% of total</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Onboarding Complete</div>
+            <div class="stat-value">78.4%</div>
+            <div class="stat-change up">↑ 4.2% this week</div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:24px">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Auth Provider Breakdown</div>
+            </div>
+            <div class="card-body">
+              <div class="metric-row">
+                <span class="metric-label">Email / Password</span>
+                <span class="metric-value">1,713 users</span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">Google OAuth</span>
+                <span class="metric-value">824 users</span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">GitHub OAuth</span>
+                <span class="metric-value">276 users</span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">Magic Link</span>
+                <span class="metric-value">34 users</span>
+              </div>
+              <div style="margin-top:16px">
+                <div style="font-size:12px;color:var(--text-3);margin-bottom:6px">Email/Password share</div>
+                <div class="progress-bar"><div class="progress-fill" style="width:60.2%"></div></div>
+                <div style="font-size:12px;color:var(--text-3);margin-top:4px">60.2%</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Onboarding Funnel</div>
+            </div>
+            <div class="card-body">
+              <div class="metric-row">
+                <span class="metric-label">Signed up</span>
+                <span class="metric-value">2,847</span>
+              </div>
+              <div style="margin:4px 0"><div class="progress-bar"><div class="progress-fill green" style="width:100%"></div></div></div>
+              <div class="metric-row" style="margin-top:8px">
+                <span class="metric-label">Email verified</span>
+                <span class="metric-value">2,596 (91%)</span>
+              </div>
+              <div style="margin:4px 0"><div class="progress-bar"><div class="progress-fill green" style="width:91%"></div></div></div>
+              <div class="metric-row" style="margin-top:8px">
+                <span class="metric-label">Profile completed</span>
+                <span class="metric-value">2,241 (79%)</span>
+              </div>
+              <div style="margin:4px 0"><div class="progress-bar"><div class="progress-fill" style="width:79%"></div></div></div>
+              <div class="metric-row" style="margin-top:8px">
+                <span class="metric-label">First action taken</span>
+                <span class="metric-value">1,877 (66%)</span>
+              </div>
+              <div style="margin:4px 0"><div class="progress-bar"><div class="progress-fill yellow" style="width:66%"></div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Recent Login Events</div>
+            <button class="btn btn-outline btn-sm">Export CSV</button>
+          </div>
+          <div class="card-body" style="padding:0">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>User</th><th>Method</th><th>IP Address</th><th>Location</th><th>Time</th><th>Result</th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><div class="user-cell"><div class="avatar-sm" style="background:#3b82f6">SC</div><div class="cell-name">Sarah Chen</div></div></td>
+                    <td><span class="badge badge-blue">Google</span></td>
+                    <td><span style="font-family:'JetBrains Mono',monospace;font-size:12px">192.168.1.42</span></td>
+                    <td>San Francisco, US</td>
+                    <td>2 min ago</td>
+                    <td><span class="badge badge-green">Success</span></td>
+                  </tr>
+                  <tr>
+                    <td><div class="user-cell"><div class="avatar-sm" style="background:#8b5cf6">MR</div><div class="cell-name">Marco Rossi</div></div></td>
+                    <td><span class="badge badge-gray">Email</span></td>
+                    <td><span style="font-family:'JetBrains Mono',monospace;font-size:12px">10.0.0.14</span></td>
+                    <td>Milan, IT</td>
+                    <td>14 min ago</td>
+                    <td><span class="badge badge-green">Success</span></td>
+                  </tr>
+                  <tr>
+                    <td><div class="user-cell"><div class="avatar-sm" style="background:#ef4444">??</div><div class="cell-name">Unknown</div></div></td>
+                    <td><span class="badge badge-gray">Email</span></td>
+                    <td><span style="font-family:'JetBrains Mono',monospace;font-size:12px">77.91.12.3</span></td>
+                    <td>Moscow, RU</td>
+                    <td>41 min ago</td>
+                    <td><span class="badge badge-red">Failed</span></td>
+                  </tr>
+                  <tr>
+                    <td><div class="user-cell"><div class="avatar-sm" style="background:#10b981">AP</div><div class="cell-name">Ana Pereira</div></div></td>
+                    <td><span class="badge badge-gray">GitHub</span></td>
+                    <td><span style="font-family:'JetBrains Mono',monospace;font-size:12px">185.42.2.19</span></td>
+                    <td>Lisbon, PT</td>
+                    <td>1h ago</td>
+                    <td><span class="badge badge-green">Success</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════ DASHBOARD & NAVIGATION ════════════════ -->
+      <div class="section" id="section-navigation">
+        <div class="page-header">
+          <h1 class="page-title">Dashboard & Navigation</h1>
+          <p class="page-subtitle">Layout configuration, sidebar menus, and UI preferences.</p>
+        </div>
+
+        <div class="alert alert-info">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>Sidebar layout is live in production. Changes here apply to all workspace users.</span>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:24px">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Layout Settings</div></div>
+            <div class="card-body">
+              <div class="toggle-row">
+                <div class="toggle-info">
+                  <div class="toggle-label">Collapsible Sidebar</div>
+                  <div class="toggle-desc">Allow users to collapse the sidebar to icon-only mode</div>
+                </div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="toggle-row">
+                <div class="toggle-info">
+                  <div class="toggle-label">Breadcrumb Navigation</div>
+                  <div class="toggle-desc">Show breadcrumbs in the top bar for deep navigation</div>
+                </div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="toggle-row">
+                <div class="toggle-info">
+                  <div class="toggle-label">Command Palette (⌘K)</div>
+                  <div class="toggle-desc">Global search and action launcher shortcut</div>
+                </div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="toggle-row">
+                <div class="toggle-info">
+                  <div class="toggle-label">Theme Toggle</div>
+                  <div class="toggle-desc">Let users switch between light and dark mode</div>
+                </div>
+                <div class="toggle" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="toggle-row">
+                <div class="toggle-info">
+                  <div class="toggle-label">Notification Bell</div>
+                  <div class="toggle-desc">Real-time notification counter in topbar</div>
+                </div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><div class="card-title">Navigation Items</div></div>
+            <div class="card-body">
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>Label</th><th>Route</th><th>Visible</th></tr></thead>
+                  <tbody>
+                    <tr><td>Dashboard</td><td><span style="font-family:'JetBrains Mono',monospace;font-size:12px">/app</span></td><td><span class="badge badge-green">On</span></td></tr>
+                    <tr><td>Authentication</td><td><span style="font-family:'JetBrains Mono',monospace;font-size:12px">/app/auth</span></td><td><span class="badge badge-green">On</span></td></tr>
+                    <tr><td>Team</td><td><span style="font-family:'JetBrains Mono',monospace;font-size:12px">/app/team</span></td><td><span class="badge badge-green">On</span></td></tr>
+                    <tr><td>Billing</td><td><span style="font-family:'JetBrains Mono',monospace;font-size:12px">/app/billing</span></td><td><span class="badge badge-green">On</span></td></tr>
+                    <tr><td>Settings</td><td><span style="font-family:'JetBrains Mono',monospace;font-size:12px">/app/settings</span></td><td><span class="badge badge-green">On</span></td></tr>
+                    <tr><td>Files</td><td><span style="font-family:'JetBrains Mono',monospace;font-size:12px">/app/files</span></td><td><span class="badge badge-yellow">Beta</span></td></tr>
+                    <tr><td>Admin</td><td><span style="font-family:'JetBrains Mono',monospace;font-size:12px">/admin</span></td><td><span class="badge badge-gray">Admin only</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════ TEAM MANAGEMENT ════════════════ -->
+      <div class="section" id="section-team">
+        <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
+          <div>
+            <h1 class="page-title">Team Management</h1>
+            <p class="page-subtitle">Workspace members, roles, and pending invitations.</p>
+          </div>
+          <button class="btn btn-primary">+ Invite member</button>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total Members</div>
+            <div class="stat-value">12</div>
+            <div class="stat-change neutral">Across 3 workspaces</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Pending Invites</div>
+            <div class="stat-value">3</div>
+            <div class="stat-change neutral">Expires in 7 days</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Workspaces</div>
+            <div class="stat-value">3</div>
+            <div class="stat-change neutral">1 personal, 2 shared</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Active This Week</div>
+            <div class="stat-value">9</div>
+            <div class="stat-change neutral">75% engagement</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header">
+            <div class="card-title">Team Members</div>
+          </div>
+          <div class="card-body" style="padding:0">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Member</th><th>Role</th><th>Workspace</th><th>Last Active</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><div class="user-cell"><div class="avatar-sm" style="background:#3b82f6">AJ</div><div><div class="cell-name">Alex Johnson</div><div class="cell-sub">alex@acmecorp.io</div></div></div></td>
+                    <td><span class="badge role-owner">Owner</span></td>
+                    <td>Acme Corp</td>
+                    <td>Now</td>
+                    <td>—</td>
+                  </tr>
+                  <tr>
+                    <td><div class="user-cell"><div class="avatar-sm" style="background:#8b5cf6">SC</div><div><div class="cell-name">Sarah Chen</div><div class="cell-sub">sarah@devco.io</div></div></div></td>
+                    <td><span class="badge role-admin">Admin</span></td>
+                    <td>Acme Corp</td>
+                    <td>2 min ago</td>
+                    <td><button class="btn btn-ghost btn-sm">Edit</button></td>
+                  </tr>
+                  <tr>
+                    <td><div class="user-cell"><div class="avatar-sm" style="background:#f59e0b">MR</div><div><div class="cell-name">Marco Rossi</div><div class="cell-sub">marco@startup.com</div></div></div></td>
+                    <td><span class="badge role-member">Member</span></td>
+                    <td>Acme Corp</td>
+                    <td>Yesterday</td>
+                    <td><button class="btn btn-ghost btn-sm">Edit</button></td>
+                  </tr>
+                  <tr>
+                    <td><div class="user-cell"><div class="avatar-sm" style="background:#10b981">LK</div><div><div class="cell-name">Lisa Kim</div><div class="cell-sub">lisa@acme.co</div></div></div></td>
+                    <td><span class="badge role-member">Member</span></td>
+                    <td>Acme Corp</td>
+                    <td>2 days ago</td>
+                    <td><button class="btn btn-ghost btn-sm">Edit</button></td>
+                  </tr>
+                  <tr>
+                    <td><div class="user-cell"><div class="avatar-sm" style="background:#ef4444">JB</div><div><div class="cell-name">James Brown</div><div class="cell-sub">james@techfirm.dev</div></div></div></td>
+                    <td><span class="badge role-viewer">Viewer</span></td>
+                    <td>Acme Corp</td>
+                    <td>1 week ago</td>
+                    <td><button class="btn btn-ghost btn-sm">Edit</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">Pending Invitations</div></div>
+          <div class="card-body" style="padding:0">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Email</th><th>Role</th><th>Sent</th><th>Expires</th><th>Actions</th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td>tommy@devteam.co</td>
+                    <td><span class="badge role-member">Member</span></td>
+                    <td>Mar 22, 2026</td>
+                    <td>Mar 29, 2026</td>
+                    <td><button class="btn btn-outline btn-sm">Resend</button></td>
+                  </tr>
+                  <tr>
+                    <td>priya@design.studio</td>
+                    <td><span class="badge role-admin">Admin</span></td>
+                    <td>Mar 23, 2026</td>
+                    <td>Mar 30, 2026</td>
+                    <td><button class="btn btn-outline btn-sm">Resend</button></td>
+                  </tr>
+                  <tr>
+                    <td>carlos@agency.mx</td>
+                    <td><span class="badge role-viewer">Viewer</span></td>
+                    <td>Mar 24, 2026</td>
+                    <td>Mar 31, 2026</td>
+                    <td><button class="btn btn-outline btn-sm">Resend</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════ BILLING ════════════════ -->
+      <div class="section" id="section-billing">
+        <div class="page-header">
+          <h1 class="page-title">Billing & Subscriptions</h1>
+          <p class="page-subtitle">Manage your plan, invoices, and payment methods.</p>
+        </div>
+
+        <div class="alert alert-success">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span>You're on the <strong>Pro plan</strong>. Next billing date: April 1, 2026 ($49/month).</span>
+        </div>
+
+        <div class="grid-3" style="margin-bottom:24px">
+          <div class="plan-card">
+            <div class="plan-name">Free</div>
+            <div class="plan-price">$0<span>/mo</span></div>
+            <div class="plan-desc">For personal projects and exploration.</div>
+            <div class="plan-feature"><svg class="plan-feature-check" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>1 workspace</div>
+            <div class="plan-feature"><svg class="plan-feature-check" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>3 members</div>
+            <div class="plan-feature"><svg class="plan-feature-check" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>5 GB storage</div>
+            <div class="plan-feature" style="color:var(--text-3)">✕ Custom domain</div>
+            <button class="btn btn-outline" style="width:100%;margin-top:16px;justify-content:center">Downgrade</button>
+          </div>
+          <div class="plan-card featured">
+            <div class="plan-badge">Current Plan</div>
+            <div class="plan-name">Pro</div>
+            <div class="plan-price">$49<span>/mo</span></div>
+            <div class="plan-desc">For growing teams shipping fast.</div>
+            <div class="plan-feature"><svg class="plan-feature-check" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Unlimited workspaces</div>
+            <div class="plan-feature"><svg class="plan-feature-check" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>25 members</div>
+            <div class="plan-feature"><svg class="plan-feature-check" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>100 GB storage</div>
+            <div class="plan-feature"><svg class="plan-feature-check" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Custom domain</div>
+            <button class="btn btn-primary" style="width:100%;margin-top:16px;justify-content:center">Active</button>
+          </div>
+          <div class="plan-card">
+            <div class="plan-name">Enterprise</div>
+            <div class="plan-price">$299<span>/mo</span></div>
+            <div class="plan-desc">For large teams with advanced needs.</div>
+            <div class="plan-feature"><svg class="plan-feature-check" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Everything in Pro</div>
+            <div class="plan-feature"><svg class="plan-feature-check" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Unlimited members</div>
+            <div class="plan-feature"><svg class="plan-feature-check" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>SSO / SAML</div>
+            <div class="plan-feature"><svg class="plan-feature-check" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>SLA & priority support</div>
+            <button class="btn btn-outline" style="width:100%;margin-top:16px;justify-content:center">Upgrade</button>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Invoice History</div></div>
+            <div class="card-body" style="padding:0">
+              <table>
+                <thead><tr><th>Date</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                  <tr><td>Mar 1, 2026</td><td>$49.00</td><td><span class="badge badge-green">Paid</span></td><td><button class="btn btn-ghost btn-sm">PDF</button></td></tr>
+                  <tr><td>Feb 1, 2026</td><td>$49.00</td><td><span class="badge badge-green">Paid</span></td><td><button class="btn btn-ghost btn-sm">PDF</button></td></tr>
+                  <tr><td>Jan 1, 2026</td><td>$49.00</td><td><span class="badge badge-green">Paid</span></td><td><button class="btn btn-ghost btn-sm">PDF</button></td></tr>
+                  <tr><td>Dec 1, 2025</td><td>$49.00</td><td><span class="badge badge-green">Paid</span></td><td><button class="btn btn-ghost btn-sm">PDF</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><div class="card-title">Usage This Month</div></div>
+            <div class="card-body">
+              <div class="metric-row">
+                <span class="metric-label">API calls</span>
+                <span class="metric-value">48,221 / 100,000</span>
+              </div>
+              <div style="margin:4px 0 12px"><div class="progress-bar"><div class="progress-fill" style="width:48.2%"></div></div></div>
+              <div class="metric-row">
+                <span class="metric-label">Storage used</span>
+                <span class="metric-value">23.4 GB / 100 GB</span>
+              </div>
+              <div style="margin:4px 0 12px"><div class="progress-bar"><div class="progress-fill green" style="width:23.4%"></div></div></div>
+              <div class="metric-row">
+                <span class="metric-label">Active members</span>
+                <span class="metric-value">12 / 25</span>
+              </div>
+              <div style="margin:4px 0"><div class="progress-bar"><div class="progress-fill green" style="width:48%"></div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════ SETTINGS ════════════════ -->
+      <div class="section" id="section-settings">
+        <div class="page-header">
+          <h1 class="page-title">Settings & Profile</h1>
+          <p class="page-subtitle">Manage your account, preferences, and security settings.</p>
+        </div>
+
+        <div class="grid-2">
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div class="card">
+              <div class="card-header"><div class="card-title">Profile</div></div>
+              <div class="card-body">
+                <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+                  <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#6366f1);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:white;flex-shrink:0">AJ</div>
+                  <div>
+                    <div style="font-weight:600;color:var(--text);font-size:15px">Alex Johnson</div>
+                    <div style="font-size:12.5px;color:var(--text-3)">alex@acmecorp.io</div>
+                    <button class="btn btn-outline btn-sm" style="margin-top:6px">Change avatar</button>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">First Name</label>
+                    <input class="form-input" type="text" value="Alex">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Last Name</label>
+                    <input class="form-input" type="text" value="Johnson">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Email Address</label>
+                  <input class="form-input" type="email" value="alex@acmecorp.io">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Job Title</label>
+                  <input class="form-input" type="text" value="Head of Engineering">
+                </div>
+                <button class="btn btn-primary">Save Changes</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header"><div class="card-title">Security</div></div>
+              <div class="card-body">
+                <div class="form-group">
+                  <label class="form-label">Current Password</label>
+                  <input class="form-input" type="password" value="••••••••••••">
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">New Password</label>
+                    <input class="form-input" type="password" placeholder="Min. 12 characters">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Confirm New</label>
+                    <input class="form-input" type="password" placeholder="Repeat password">
+                  </div>
+                </div>
+                <button class="btn btn-outline">Update Password</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div class="card">
+              <div class="card-header"><div class="card-title">Notifications</div></div>
+              <div class="card-body">
+                <div class="toggle-row">
+                  <div class="toggle-info">
+                    <div class="toggle-label">Email Digest</div>
+                    <div class="toggle-desc">Daily summary of workspace activity</div>
+                  </div>
+                  <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+                </div>
+                <div class="toggle-row">
+                  <div class="toggle-info">
+                    <div class="toggle-label">In-App Notifications</div>
+                    <div class="toggle-desc">Real-time alerts while you're logged in</div>
+                  </div>
+                  <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+                </div>
+                <div class="toggle-row">
+                  <div class="toggle-info">
+                    <div class="toggle-label">Team Invites</div>
+                    <div class="toggle-desc">Notify when someone invites you to a workspace</div>
+                  </div>
+                  <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+                </div>
+                <div class="toggle-row">
+                  <div class="toggle-info">
+                    <div class="toggle-label">Billing Alerts</div>
+                    <div class="toggle-desc">Payment failures and upcoming renewals</div>
+                  </div>
+                  <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+                </div>
+                <div class="toggle-row">
+                  <div class="toggle-info">
+                    <div class="toggle-label">Marketing Emails</div>
+                    <div class="toggle-desc">Product updates and new feature announcements</div>
+                  </div>
+                  <div class="toggle" onclick="this.classList.toggle('on')"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header"><div class="card-title">Two-Factor Authentication</div></div>
+              <div class="card-body">
+                <div class="alert alert-warning" style="margin-bottom:12px">
+                  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  2FA is not enabled on your account.
+                </div>
+                <p style="font-size:13px;color:var(--text-2);margin-bottom:12px">Add an extra layer of security using an authenticator app (TOTP).</p>
+                <button class="btn btn-primary">Enable 2FA</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════ FILE MANAGEMENT ════════════════ -->
+      <div class="section" id="section-files">
+        <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
+          <div>
+            <h1 class="page-title">File Management</h1>
+            <p class="page-subtitle">Upload, organize, and share files with your team.</p>
+          </div>
+          <button class="btn btn-primary">+ Upload files</button>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total Files</div>
+            <div class="stat-value">284</div>
+            <div class="stat-change neutral">Across 12 folders</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Storage Used</div>
+            <div class="stat-value">23.4 GB</div>
+            <div class="stat-change neutral">23.4% of 100 GB</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Shared Files</div>
+            <div class="stat-value">47</div>
+            <div class="stat-change neutral">12 publicly linked</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Uploads Today</div>
+            <div class="stat-value">8</div>
+            <div class="stat-change up">↑ 3 vs yesterday</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px">
+          <!-- Upload drop zone -->
+          <div class="card-body">
+            <div style="border:2px dashed var(--border);border-radius:var(--radius);padding:32px;text-align:center;background:var(--surface-2)">
+              <div style="font-size:32px;margin-bottom:8px">☁️</div>
+              <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px">Drop files here to upload</div>
+              <div style="font-size:12.5px;color:var(--text-3);margin-bottom:12px">Supports images, PDFs, videos up to 500 MB</div>
+              <button class="btn btn-outline">Browse files</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Recent Files</div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-outline btn-sm">🗂 Folders</button>
+              <button class="btn btn-outline btn-sm">Filter</button>
+            </div>
+          </div>
+          <div class="card-body" style="padding:0">
+            <div class="file-item">
+              <div class="file-icon" style="background:#eff6ff">📄</div>
+              <div style="flex:1">
+                <div class="file-name">Q1-2026-Report.pdf</div>
+                <div class="file-meta">PDF • Uploaded by Sarah • Mar 24</div>
+              </div>
+              <span class="badge badge-blue">Shared</span>
+              <span class="file-size">4.2 MB</span>
+            </div>
+            <div class="file-item">
+              <div class="file-icon" style="background:#f0fdf4">🖼️</div>
+              <div style="flex:1">
+                <div class="file-name">brand-assets-v3.zip</div>
+                <div class="file-meta">ZIP • Uploaded by Alex • Mar 23</div>
+              </div>
+              <span class="badge badge-gray">Private</span>
+              <span class="file-size">18.7 MB</span>
+            </div>
+            <div class="file-item">
+              <div class="file-icon" style="background:#fff7ed">📊</div>
+              <div style="flex:1">
+                <div class="file-name">user-analytics-march.csv</div>
+                <div class="file-meta">CSV • Uploaded by Marco • Mar 22</div>
+              </div>
+              <span class="badge badge-blue">Shared</span>
+              <span class="file-size">312 KB</span>
+            </div>
+            <div class="file-item">
+              <div class="file-icon" style="background:#fdf4ff">🎨</div>
+              <div style="flex:1">
+                <div class="file-name">dashboard-mockup.fig</div>
+                <div class="file-meta">Figma • Uploaded by Lisa • Mar 21</div>
+              </div>
+              <span class="badge badge-blue">Shared</span>
+              <span class="file-size">2.8 MB</span>
+            </div>
+            <div class="file-item">
+              <div class="file-icon" style="background:#f0fdf4">📹</div>
+              <div style="flex:1">
+                <div class="file-name">onboarding-video-draft.mp4</div>
+                <div class="file-meta">MP4 • Uploaded by James • Mar 20</div>
+              </div>
+              <span class="badge badge-gray">Private</span>
+              <span class="file-size">142 MB</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════ ADMIN PANEL ════════════════ -->
+      <div class="section" id="section-admin">
+        <div class="page-header">
+          <h1 class="page-title">Admin Panel</h1>
+          <p class="page-subtitle">System-wide management, health metrics, and feature flags.</p>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">System Health</div>
+            <div class="stat-value" style="color:var(--success)">99.9%</div>
+            <div class="stat-change up">Uptime last 30 days</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Users</div>
+            <div class="stat-value">2,847</div>
+            <div class="stat-change neutral">Across all workspaces</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Suspended Accounts</div>
+            <div class="stat-value">4</div>
+            <div class="stat-change neutral">0 new this week</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Error Rate (24h)</div>
+            <div class="stat-value">0.04%</div>
+            <div class="stat-change down">↓ from 0.11%</div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:16px">
+          <div class="card">
+            <div class="card-header"><div class="card-title">System Health</div></div>
+            <div class="card-body">
+              <div class="metric-row">
+                <span class="metric-label">API latency (p99)</span>
+                <span class="metric-value">142ms</span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">DB query time (avg)</span>
+                <span class="metric-value">8.3ms</span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">CPU usage</span>
+                <span class="metric-value">24%</span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">Memory usage</span>
+                <span class="metric-value">1.8 GB / 4 GB</span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">Active workers</span>
+                <span class="metric-value">4 / 4</span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">Queue depth</span>
+                <span class="metric-value">0 jobs</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><div class="card-title">Feature Flags</div></div>
+            <div class="card-body">
+              <div class="toggle-row">
+                <div class="toggle-info">
+                  <div class="toggle-label">Magic Link Login</div>
+                  <div class="toggle-desc">Passwordless email sign-in</div>
+                </div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="toggle-row">
+                <div class="toggle-info">
+                  <div class="toggle-label">File Previews</div>
+                  <div class="toggle-desc">In-app preview for images and PDFs</div>
+                </div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="toggle-row">
+                <div class="toggle-info">
+                  <div class="toggle-label">AI Assistant (Beta)</div>
+                  <div class="toggle-desc">Copilot-style help inside the app</div>
+                </div>
+                <div class="toggle" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="toggle-row">
+                <div class="toggle-info">
+                  <div class="toggle-label">Export to CSV</div>
+                  <div class="toggle-desc">Allow bulk data export from tables</div>
+                </div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="toggle-row">
+                <div class="toggle-info">
+                  <div class="toggle-label">Audit Log</div>
+                  <div class="toggle-desc">Per-workspace activity history</div>
+                </div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Application Logs</div>
+            <button class="btn btn-outline btn-sm">Refresh</button>
+          </div>
+          <div class="card-body">
+            <div class="code-block">
+<span class="cm">[2026-03-24 22:08:14]</span> <span class="kw">INFO</span>  worker-1  <span class="str">GET /api/users 200 8ms</span>
+<span class="cm">[2026-03-24 22:08:15]</span> <span class="kw">INFO</span>  worker-2  <span class="str">POST /api/auth/login 200 31ms</span>
+<span class="cm">[2026-03-24 22:08:16]</span> <span class="kw">INFO</span>  worker-3  <span class="str">GET /api/billing/invoices 200 12ms</span>
+<span class="cm">[2026-03-24 22:08:17]</span> <span class="kw">WARN</span>  worker-1  <span class="str">Rate limit approached: key=ak_9x2...</span>
+<span class="cm">[2026-03-24 22:08:19]</span> <span class="kw">INFO</span>  worker-4  <span class="str">POST /api/files/upload 201 142ms</span>
+<span class="cm">[2026-03-24 22:08:21]</span> <span class="kw">INFO</span>  worker-2  <span class="str">DELETE /api/sessions/old 200 4ms</span>
+<span class="cm">[2026-03-24 22:08:23]</span> <span class="kw">INFO</span>  worker-1  <span class="str">GET /health 200 1ms</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content-area -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+  const SECTION_LABELS = {
+    overview:   'Dashboard',
+    auth:       'Authentication',
+    navigation: 'Navigation',
+    team:       'Team Management',
+    billing:    'Billing',
+    settings:   'Settings',
+    files:      'File Management',
+    admin:      'Admin Panel',
+  };
+
+  function switchTab(id, navEl) {
+    // Hide all sections
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    // Deactivate all nav items
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+    // Show target section
+    const section = document.getElementById('section-' + id);
+    if (section) section.classList.add('active');
+
+    // Activate nav item
+    if (navEl) navEl.classList.add('active');
+
+    // Update breadcrumb
+    const crumb = document.getElementById('breadcrumb-current');
+    if (crumb) crumb.textContent = SECTION_LABELS[id] || id;
+  }
+</script>
+</body>
+</html>

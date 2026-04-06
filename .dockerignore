@@ -1,0 +1,18 @@
+# Root .dockerignore
+.git
+.gitignore
+*.md
+docs/
+scripts/setup.sh
+
+# Built artifacts (each stage builds fresh)
+client/dist/
+client/node_modules/
+server/node_modules/
+
+# Dev / local config
+.env*
+!.env.example
+docker-compose.local.yml
+*.log
+.DS_Store

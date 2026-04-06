@@ -1,0 +1,25 @@
+// PasswordStrengthIndicator styles
+
+// Taller strength bar segments on mobile for better visibility
+@media (max-width: 639px) {
+  .strength-bar-segment {
+    height: 0.5rem;
+    border-radius: 0.25rem;
+  }
+}
+
+// Touch devices: adequate spacing for requirement items
+@media (hover: none) and (pointer: coarse) {
+  .strength-requirement-item {
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+  }
+}
+
+// Very small screens: tighten gap between bar segments
+@media (max-width: 359px) {
+  .strength-bar {
+    gap: 2px;
+  }
+}

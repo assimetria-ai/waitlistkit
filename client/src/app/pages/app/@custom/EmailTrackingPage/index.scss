@@ -1,0 +1,51 @@
+// EmailTrackingPage styles
+
+// Page header: stack on mobile
+@media (max-width: 639px) {
+  .email-tracking-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .email-tracking-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+// Stats grid: 2-up on mobile (4-up on md+)
+@media (max-width: 639px) {
+  .email-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+// Filter bar: wrap to new line on mobile
+@media (max-width: 767px) {
+  .email-filter-bar {
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+  }
+
+  // Search input: expand to fill available space
+  .email-search-input {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+// Status tabs: horizontal scroll on very small screens
+@media (max-width: 479px) {
+  .email-status-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    flex-wrap: nowrap;
+
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+}

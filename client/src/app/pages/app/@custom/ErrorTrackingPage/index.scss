@@ -1,0 +1,48 @@
+// ErrorTrackingPage styles
+
+// Page header: stack on mobile
+@media (max-width: 639px) {
+  .error-tracking-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+}
+
+// Stats grid: 2-up on mobile (4-up on md+)
+@media (max-width: 639px) {
+  .error-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+// Filter bar: stack on mobile
+@media (max-width: 639px) {
+  .error-filter-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+// Status tabs: horizontal scroll on very small screens
+@media (max-width: 479px) {
+  .error-status-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    flex-wrap: nowrap;
+
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+}
+
+// Level filter: full width on mobile
+@media (max-width: 479px) {
+  .error-level-filter {
+    width: 100%;
+  }
+}

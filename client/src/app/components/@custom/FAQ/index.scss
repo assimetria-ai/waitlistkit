@@ -1,0 +1,40 @@
+// FAQ styles
+
+// Compact vertical padding on small screens
+@media (max-width: 639px) {
+  .faq-section {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+  }
+
+  .faq-heading {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+// Full-bleed accordion card on very narrow screens
+@media (max-width: 479px) {
+  .faq-card {
+    margin-inline: -1rem;
+    border-inline: none;
+    border-radius: 0;
+  }
+}
+
+// Touch devices: enforce minimum tap target on accordion toggle
+@media (hover: none) and (pointer: coarse) {
+  .faq-item-button {
+    min-height: 44px;
+    padding-top: 0.875rem;
+    padding-bottom: 0.875rem;
+  }
+}
+
+// Landscape mobile: reduce section padding
+@media (orientation: landscape) and (max-height: 500px) {
+  .faq-section {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+}

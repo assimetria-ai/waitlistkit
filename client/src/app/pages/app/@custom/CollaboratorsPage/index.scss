@@ -1,0 +1,42 @@
+// CollaboratorsPage styles
+
+// Page header: stack title/invite button on mobile
+@media (max-width: 639px) {
+  .collaborators-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+}
+
+// Invite token banner: break long invite URLs
+@media (max-width: 767px) {
+  .invite-token-url {
+    word-break: break-all;
+    font-size: 0.6875rem;
+  }
+}
+
+// Summary stats grid: single column on very small screens
+@media (max-width: 479px) {
+  .collaborators-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Collaborators table: horizontal scroll on mobile
+@media (max-width: 767px) {
+  .collaborators-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-inline: -1rem;
+    padding-inline: 1rem;
+  }
+}
+
+// Role permissions guide: single column on mobile
+@media (max-width: 479px) {
+  .role-permissions-grid {
+    grid-template-columns: 1fr;
+  }
+}

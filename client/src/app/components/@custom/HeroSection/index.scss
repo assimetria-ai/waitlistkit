@@ -1,0 +1,40 @@
+// HeroSection styles
+
+// Tighter vertical rhythm on small screens
+@media (max-width: 639px) {
+  .hero-section {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+  }
+
+  .hero-headline {
+    font-size: clamp(1.75rem, 8vw, 3rem);
+    line-height: 1.2;
+  }
+
+  // Contain decorative gradient blob within viewport
+  .hero-bg-blob {
+    width: 100%;
+    opacity: 0.6;
+  }
+}
+
+// CTA buttons: ensure full width on very small screens
+@media (max-width: 399px) {
+  .hero-cta-group {
+    flex-direction: column;
+    width: 100%;
+
+    > a {
+      width: 100%;
+    }
+  }
+}
+
+// Landscape mobile: reduce padding to preserve content visibility
+@media (orientation: landscape) and (max-height: 500px) {
+  .hero-section {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+}

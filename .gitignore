@@ -1,0 +1,43 @@
+node_modules/
+dist/
+build/
+
+# Environment files — never commit real secrets
+.env
+.env.local
+.env.*.local
+server/.env
+server/.env.local
+server/.env.*.local
+client/.env
+client/.env.local
+client/.env.*.local
+
+*.log
+.DS_Store
+.vscode/
+coverage/
+
+# Cryptographic key files — generated locally, never commit
+# RSA private key is stored here by npm run generate-keys
+server/.keys/
+.keys/
+*.pem
+*.key
+*_private.pem
+*_private.key
+
+# Database backups
+backups/*.dump
+backups/*.dump.gz
+*.backup-insecure
+
+# Generated test artifacts
+playwright-report/
+test-results/
+
+# ANTI-PATTERN: brands/ dir must NEVER exist in product repos
+# Brand assets live ONLY in /assets/ (logos, favicons, og)
+# Sketches live in /sketches/ (parallel to /assets/)
+brands/
+backend/public/brands/
